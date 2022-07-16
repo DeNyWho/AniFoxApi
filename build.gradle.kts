@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "2.7.1"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.6.21"
+
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.spring") version "1.6.21"
 }
@@ -18,21 +20,32 @@ repositories {
 extra["springBootAdminVersion"] = "2.7.1"
 
 dependencies {
-    implementation("io.springfox:springfox-swagger2:3.0.0")
-    implementation("io.springfox:springfox-swagger-ui:3.0.0")
-    implementation("io.springfox:springfox-boot-starter:3.0.0")
+    // KotlinX Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+    // Swagger
+    implementation("org.springdoc:springdoc-openapi-data-rest:1.6.9")
+    implementation("org.springdoc:springdoc-openapi-ui:1.6.9")
+    implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
     // Beautiful Logger
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    implementation("com.google.code.gson:gson:2.8.9")
     implementation("io.jsonwebtoken:jjwt:0.9.1")
-    implementation("org.springframework.boot:spring-boot-starter-thymeleaf:2.5.5")
+
     implementation("org.apache.tomcat.embed:tomcat-embed-core:9.0.56")
+
+    implementation("com.google.guava:guava:31.1-jre")
+
+    implementation("org.springframework.boot:spring-boot-starter-web")
+
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
+//    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+//    implementation("org.springframework.boot:spring-boot-starter-security")
+//    implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("de.codecentric:spring-boot-admin-starter-client")
     implementation("de.codecentric:spring-boot-admin-starter-server")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
