@@ -40,9 +40,11 @@ class MangaParserController {
     @Operation(summary = "Get new popular manga")
     fun getPopularManga(
         @RequestParam countPage: Int,
+        @RequestParam( required = false) status: Int?,
+        @RequestParam( required = false) countCard: Int?
     ): ServiceResponse<Anime> {
         return try {
-            val data = service.popular(countPage)
+            val data = service.popular(countPage, status, countCard)
 
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
