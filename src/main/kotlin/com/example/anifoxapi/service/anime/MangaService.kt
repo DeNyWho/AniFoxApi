@@ -12,44 +12,53 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class AnimeService {
+class MangaService {
 
     fun search(query: String): List<Anime> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
-        return searchFor(driver = driver, query = query)
-    }
-
-//    fun popular()
-
-    fun searchFor(driver: WebDriver, query: String): List<Anime> {
         driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=1&types[]=1")
 
         val searchBox = driver.findElement(By.xpath("//input[@class='form__input manga-search__input']"))
         searchBox.click()
         searchBox.sendKeys(query, Keys.ENTER)
-        Thread.sleep(1000)
+        Thread.sleep(500)
         val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
         val data = mutableListOf<Anime>()
         for (i in 0 until list.size){
             data.add(
                 Anime(
                     title = list[i].text.drop(6),
-                    image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                    page = null
+                    image = list[i].getCssValue("background-image").drop(5).dropLast(2)
                 )
             )
         }
         return data
     }
 
+    fun popular(countPage: Int): List<Anime>{
+        val driver = setWebDriver("https://mangalib.me/manga-list")
+        val data = mutableListOf<Anime>()
 
-
-
+        for (i in 0 until countPage) {
+            driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=${i+1}&types[]=1")
+            Thread.sleep(500)
+            val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
+            for (i in 0 until list.size) {
+                data.add(
+                    Anime(
+                        title = list[i].text.drop(6),
+                        image = list[i].getCssValue("background-image").drop(5).dropLast(2)
+                    )
+                )
+            }
+        }
+        return data
+    }
 
 
 
     fun setWebDriver(url: String): WebDriver {
-        var pathDriver: String = when (getOS()) {
+        val pathDriver: String = when (getOS()) {
             // Loaded from here https://chromedriver.storage.googleapis.com/index.html?path=101.0.4951.41/
             OS.WINDOWS -> "_win32_101.exe"
             OS.LINUX-> "_linux64_101"
