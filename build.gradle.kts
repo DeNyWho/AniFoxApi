@@ -31,6 +31,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    // Selenium WebDrive
+    implementation("org.seleniumhq.selenium:selenium-java:4.2.1")
+
+    // Chrome Driver for Selenium
+    implementation("org.seleniumhq.selenium:selenium-chrome-driver:4.2.1")
+
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("io.jsonwebtoken:jjwt:0.9.1")
 

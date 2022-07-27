@@ -7,6 +7,5 @@ import org.springframework.http.HttpStatus
 data class ServiceResponse<T>(
     var data: List<T>? = null,
     var status: HttpStatus,
-    var message: String = "",
-    var totalCount: Long = 0
+    var message: String = ""
 )
