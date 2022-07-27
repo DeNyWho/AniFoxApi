@@ -1,14 +1,20 @@
 package com.example.anifoxapi.service.anime
 
 import com.example.anifoxapi.model.anime.Anime
+import com.example.anifoxapi.model.manga.MangaTags
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
 import org.openqa.selenium.By
+import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.Keys
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
+import org.openqa.selenium.firefox.FirefoxDriver
+import org.openqa.selenium.support.ui.ExpectedConditions
+import org.openqa.selenium.support.ui.WebDriverWait
 import org.springframework.stereotype.Service
+import java.time.Duration
 
 
 @Service
@@ -50,7 +56,7 @@ class MangaService {
                         data.add(
                             Anime(
                                 title = list[i].text.drop(6),
-                                image = list[i].getCssValue("background-image").drop(5).dropLast(2)
+                                image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             )
                         )
                     }
@@ -62,7 +68,7 @@ class MangaService {
                         data.add(
                             Anime(
                                 title = list[i].text.drop(6),
-                                image = list[i].getCssValue("background-image").drop(5).dropLast(2)
+                                image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             )
                         )
                     }
@@ -77,7 +83,7 @@ class MangaService {
                     data.add(
                         Anime(
                             title = list[i].text.drop(6),
-                            image = list[i].getCssValue("background-image").drop(5).dropLast(2)
+                            image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                         )
                     )
                 }
@@ -90,7 +96,7 @@ class MangaService {
                         Anime(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                            url = list[i].getAttribute("href")
+                            url = list[i].getAttribute("href"),
                         )
                     )
                 }
@@ -113,7 +119,7 @@ class MangaService {
                         Anime(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                            url = list[i].getAttribute("href")
+                            url = list[i].getAttribute("href"),
                         )
                     )
                 }
@@ -128,7 +134,7 @@ class MangaService {
                     Anime(
                         title = list[i].text.drop(6),
                         image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                        url = list[i].getAttribute("href")
+                        url = list[i].getAttribute("href"),
                     )
                 )
             }
@@ -152,7 +158,7 @@ class MangaService {
                         Anime(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                            url = list[i].getAttribute("href")
+                            url = list[i].getAttribute("href"),
                         )
                     )
                 }
@@ -167,7 +173,7 @@ class MangaService {
                     Anime(
                         title = list[i].text.drop(6),
                         image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                        url = list[i].getAttribute("href")
+                        url = list[i].getAttribute("href"),
                     )
                 )
             }
@@ -198,6 +204,65 @@ class MangaService {
             throw Exception(e.localizedMessage)
         }
         return driver
+    }
+
+    fun details(url: String): Anime {
+        val driver = setWebDriver(url)
+
+        val description = driver.findElement(By.xpath("//*[@class=\"media-description__text\"]")).text
+        val image = driver.findElement(By.xpath("//meta[@property='og:image']")).getAttribute("content")
+        val title = driver.findElement(By.xpath("//meta[@property='og:title']")).getAttribute("content")
+        val tags = driver.findElement(By.xpath("//*[@class=\"media-tags\"]")).text.replace("\n",", ")
+        val listTitle = driver.findElements(By.xpath("//*[@class=\"media-info-list__item\"]"))
+
+        val listTitleReady = mutableListOf<String>()
+        val listTitleFinal = mutableListOf<String>()
+        val listValueFinal = mutableListOf<String>()
+        val result = mutableListOf<String>()
+
+        listTitle.forEach{
+            listTitleReady.add(it.text.replace("\n",", "))
+        }
+
+        for(i in 0 until listTitleReady.size){
+            result.addAll(listTitleReady[i].split(",").map { it.trim() })
+        }
+
+        for (i in 0 until result.size){
+            if (i % 2 == 0) {
+                listTitleFinal.add(result[i])
+            } else {
+                listValueFinal.add(result[i])
+            }
+        }
+        println(url)
+
+        driver.get("$url?section=chapters")
+        println(driver.currentUrl)
+        driver.findElements(By.xpath("//*[@class=\"media-chapter__name text-truncate\"]"))
+        Thread.sleep(500)
+        driver.navigate().to("$url?section=chapters")
+        driver.manage().window().maximize()
+        (driver as JavascriptExecutor)
+            .executeScript("window.scrollTo(0, document.body.scrollHeight)")
+        Thread.sleep(2000)
+        val chapterName = WebDriverWait(driver, Duration.ofSeconds(3))
+            .until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//*[@class=\"media-chapter__name text-truncate\"]")))
+        println("CHAPTER NAME = ${chapterName.size}")
+        val chapters = mutableListOf<String>()
+
+        chapterName.forEach {
+            chapters.add(it.text)
+        }
+        return Anime(
+            title = title,
+            image = image,
+            description = description,
+            tags = tags,
+            list = MangaTags(title = listTitleFinal, value = listValueFinal),
+            chapters = chapters.toList()
+        )
+
     }
 
 

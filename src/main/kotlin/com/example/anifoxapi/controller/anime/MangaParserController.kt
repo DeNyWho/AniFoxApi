@@ -89,4 +89,21 @@ class MangaParserController {
         }
     }
 
+    @GetMapping("detail")
+    @Operation(summary = "Get detail of manga")
+    fun getDetailOfManga(
+        @RequestParam url: String
+    ): ServiceResponse<Anime> {
+        return try {
+            val data = service.details(url)
+
+            return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        }
+//        } catch (e: Exception) {
+//            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+//        }
+    }
+
 }
