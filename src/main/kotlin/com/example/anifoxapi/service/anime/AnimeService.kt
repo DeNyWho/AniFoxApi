@@ -6,25 +6,20 @@ import com.example.anifoxapi.util.getOS
 import org.openqa.selenium.By
 import org.openqa.selenium.Keys
 import org.openqa.selenium.WebDriver
-import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
-import org.openqa.selenium.support.ui.ExpectedConditions
-import org.openqa.selenium.support.ui.FluentWait
-import org.openqa.selenium.support.ui.Wait
-import org.openqa.selenium.support.ui.WebDriverWait
 import org.springframework.stereotype.Service
-import java.time.Duration
 
 
 @Service
 class AnimeService {
 
-
     fun search(query: String): List<Anime> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
         return searchFor(driver = driver, query = query)
     }
+
+//    fun popular()
 
     fun searchFor(driver: WebDriver, query: String): List<Anime> {
         driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=1&types[]=1")
@@ -34,15 +29,12 @@ class AnimeService {
         searchBox.sendKeys(query, Keys.ENTER)
         Thread.sleep(1000)
         val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
-        println("list = ${list[1].text}")
-        val link = driver.currentUrl
-        println("link = $link")
         val data = mutableListOf<Anime>()
         for (i in 0 until list.size){
             data.add(
                 Anime(
-                    title = list[i].text,
-                    image = "https://mangalib.me" + list[i].getAttribute("src-data"),
+                    title = list[i].text.drop(6),
+                    image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                     page = null
                 )
             )
