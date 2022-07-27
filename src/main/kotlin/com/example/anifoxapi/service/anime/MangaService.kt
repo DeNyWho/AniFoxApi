@@ -28,7 +28,8 @@ class MangaService {
             data.add(
                 Anime(
                     title = list[i].text.drop(6),
-                    image = list[i].getCssValue("background-image").drop(5).dropLast(2)
+                    image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                    url = list[i].getAttribute("href")
                 )
             )
         }
@@ -88,7 +89,8 @@ class MangaService {
                     data.add(
                         Anime(
                             title = list[i].text.drop(6),
-                            image = list[i].getCssValue("background-image").drop(5).dropLast(2)
+                            image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                            url = list[i].getAttribute("href")
                         )
                     )
                 }
@@ -97,7 +99,83 @@ class MangaService {
         return data
     }
 
+    fun newUpdate(countPage: Int, countCard: Int?): List<Anime> {
+        val driver = setWebDriver("https://mangalib.me/manga-list")
+        val data = mutableListOf<Anime>()
 
+        if(countCard == null) {
+            for (i in 0 until countPage) {
+                driver.get("https://mangalib.me/manga-list?sort=last_chapter_at&dir=desc&page=$countPage&types[]=1")
+                Thread.sleep(500)
+                val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
+                for (i in 0 until list.size) {
+                    data.add(
+                        Anime(
+                            title = list[i].text.drop(6),
+                            image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                            url = list[i].getAttribute("href")
+                        )
+                    )
+                }
+            }
+        }
+        else {
+            driver.get("https://mangalib.me/manga-list?sort=last_chapter_at&dir=desc&page=$countPage&types[]=1")
+            Thread.sleep(500)
+            val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
+            for (i in 0 until countCard) {
+                data.add(
+                    Anime(
+                        title = list[i].text.drop(6),
+                        image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                        url = list[i].getAttribute("href")
+                    )
+                )
+            }
+        }
+
+
+        return data
+    }
+
+    fun views(countPage: Int, countCard: Int?): List<Anime> {
+        val driver = setWebDriver("https://mangalib.me/manga-list")
+        val data = mutableListOf<Anime>()
+
+        if(countCard == null) {
+            for (i in 0 until countPage) {
+                driver.get("https://mangalib.me/manga-list?sort=views&dir=desc&page=$countPage&types[]=1")
+                Thread.sleep(500)
+                val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
+                for (i in 0 until list.size) {
+                    data.add(
+                        Anime(
+                            title = list[i].text.drop(6),
+                            image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                            url = list[i].getAttribute("href")
+                        )
+                    )
+                }
+            }
+        }
+        else {
+            driver.get("https://mangalib.me/manga-list?sort=views&dir=desc&page=$countPage&types[]=1")
+            Thread.sleep(500)
+            val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
+            for (i in 0 until countCard) {
+                data.add(
+                    Anime(
+                        title = list[i].text.drop(6),
+                        image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                        url = list[i].getAttribute("href")
+                    )
+                )
+            }
+        }
+
+
+        return data
+    }
 
 
     fun setWebDriver(url: String): WebDriver {

@@ -54,4 +54,39 @@ class MangaParserController {
         }
     }
 
+    @GetMapping("newUpdate")
+    @Operation(summary = "Get new update manga")
+    fun getNewUpdateManga(
+        @RequestParam countPage: Int,
+        @RequestParam( required = false) countCard: Int?
+    ): ServiceResponse<Anime> {
+        return try {
+            val data = service.newUpdate(countPage, countCard)
+
+            return ServiceResponse(data = data, status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        } catch (e: Exception) {
+            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+        }
+    }
+
+
+    @GetMapping("views")
+    @Operation(summary = "Get most of views manga")
+    fun getViewsManga(
+        @RequestParam countPage: Int,
+        @RequestParam( required = false) countCard: Int?
+    ): ServiceResponse<Anime> {
+        return try {
+            val data = service.views(countPage, countCard)
+
+            return ServiceResponse(data = data, status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        } catch (e: Exception) {
+            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+        }
+    }
+
 }
