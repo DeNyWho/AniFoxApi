@@ -1,9 +1,10 @@
 package com.example.anifoxapi.controller.anime
 
-import com.example.anifoxapi.model.anime.Anime
+import com.example.anifoxapi.model.manga.Manga
 import com.example.anifoxapi.model.responses.ServiceResponse
-import com.example.anifoxapi.service.anime.MangaService
+import com.example.anifoxapi.service.manga.MangaService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.http.HttpStatus
@@ -13,18 +14,18 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
+@Tag(name = "MangaApi", description = "All about manga")
 @RequestMapping("/api2/manga/")
 class MangaParserController {
 
     @Autowired
     lateinit var service: MangaService
 
-
     @GetMapping("search")
     @Operation(summary = "Search anime")
     fun search(
         @RequestParam search: String,
-    ): ServiceResponse<Anime> {
+    ): ServiceResponse<Manga> {
         return try {
             val data = service.search(query = search)
             println("data = $data")
@@ -42,7 +43,7 @@ class MangaParserController {
         @RequestParam countPage: Int,
         @RequestParam(required = false) status: Int?,
         @RequestParam(required = false) countCard: Int?
-    ): ServiceResponse<Anime> {
+    ): ServiceResponse<Manga> {
         return try {
             val data = service.popular(countPage, status, countCard)
 
@@ -59,7 +60,7 @@ class MangaParserController {
     fun getNewUpdateManga(
         @RequestParam countPage: Int,
         @RequestParam(required = false) countCard: Int?
-    ): ServiceResponse<Anime> {
+    ): ServiceResponse<Manga> {
         return try {
             val data = service.newUpdate(countPage, countCard)
 
@@ -77,7 +78,7 @@ class MangaParserController {
     fun getViewsManga(
         @RequestParam countPage: Int,
         @RequestParam(required = false) countCard: Int?
-    ): ServiceResponse<Anime> {
+    ): ServiceResponse<Manga> {
         return try {
             val data = service.views(countPage, countCard)
 
@@ -93,7 +94,7 @@ class MangaParserController {
     @Operation(summary = "Get detail of manga")
     fun getDetailOfManga(
         @RequestParam url: String
-    ): ServiceResponse<Anime> {
+    ): ServiceResponse<Manga> {
         return try {
             val data = service.details(url)
 

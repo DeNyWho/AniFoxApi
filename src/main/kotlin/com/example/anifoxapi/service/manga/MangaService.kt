@@ -1,9 +1,8 @@
-package com.example.anifoxapi.service.anime
+package com.example.anifoxapi.service.manga
 
-import com.example.anifoxapi.model.anime.Anime
+import com.example.anifoxapi.model.manga.Manga
 import com.example.anifoxapi.model.manga.MangaChapters
 import com.example.anifoxapi.model.manga.MangaTags
-import com.example.anifoxapi.model.manga.Pages
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
 import org.openqa.selenium.*
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Service
 @Service
 class MangaService {
 
-    fun search(query: String): List<Anime> {
+    fun search(query: String): List<Manga> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
         driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=1&types[]=1")
 
@@ -24,10 +23,10 @@ class MangaService {
         searchBox.sendKeys(query, Keys.ENTER)
         Thread.sleep(500)
         val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
-        val data = mutableListOf<Anime>()
+        val data = mutableListOf<Manga>()
         for (i in 0 until list.size){
             data.add(
-                Anime(
+                Manga(
                     title = list[i].text.drop(6),
                     image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                     url = list[i].getAttribute("href")
@@ -37,9 +36,9 @@ class MangaService {
         return data
     }
 
-    fun popular(countPage: Int, status: Int?, countCard: Int?): List<Anime>{
+    fun popular(countPage: Int, status: Int?, countCard: Int?): List<Manga>{
         val driver = setWebDriver("https://mangalib.me/manga-list")
-        val data = mutableListOf<Anime>()
+        val data = mutableListOf<Manga>()
 
         if(countCard == null) {
             for (i in 0 until countPage) {
@@ -49,7 +48,7 @@ class MangaService {
                     val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                     for (i in 0 until list.size) {
                         data.add(
-                            Anime(
+                            Manga(
                                 title = list[i].text.drop(6),
                                 image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             )
@@ -61,7 +60,7 @@ class MangaService {
                     val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                     for (i in 0 until list.size) {
                         data.add(
-                            Anime(
+                            Manga(
                                 title = list[i].text.drop(6),
                                 image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             )
@@ -76,7 +75,7 @@ class MangaService {
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until countCard) {
                     data.add(
-                        Anime(
+                        Manga(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                         )
@@ -88,7 +87,7 @@ class MangaService {
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until countCard) {
                     data.add(
-                        Anime(
+                        Manga(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             url = list[i].getAttribute("href"),
@@ -100,9 +99,9 @@ class MangaService {
         return data
     }
 
-    fun newUpdate(countPage: Int, countCard: Int?): List<Anime> {
+    fun newUpdate(countPage: Int, countCard: Int?): List<Manga> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
-        val data = mutableListOf<Anime>()
+        val data = mutableListOf<Manga>()
 
         if(countCard == null) {
             for (i in 0 until countPage) {
@@ -111,7 +110,7 @@ class MangaService {
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until list.size) {
                     data.add(
-                        Anime(
+                        Manga(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             url = list[i].getAttribute("href"),
@@ -126,7 +125,7 @@ class MangaService {
             val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
             for (i in 0 until countCard) {
                 data.add(
-                    Anime(
+                    Manga(
                         title = list[i].text.drop(6),
                         image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                         url = list[i].getAttribute("href"),
@@ -138,9 +137,9 @@ class MangaService {
         return data
     }
 
-    fun views(countPage: Int, countCard: Int?): List<Anime> {
+    fun views(countPage: Int, countCard: Int?): List<Manga> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
-        val data = mutableListOf<Anime>()
+        val data = mutableListOf<Manga>()
 
         if(countCard == null) {
             for (i in 0 until countPage) {
@@ -149,7 +148,7 @@ class MangaService {
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until list.size) {
                     data.add(
-                        Anime(
+                        Manga(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             url = list[i].getAttribute("href"),
@@ -164,7 +163,7 @@ class MangaService {
             val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
             for (i in 0 until countCard) {
                 data.add(
-                    Anime(
+                    Manga(
                         title = list[i].text.drop(6),
                         image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                         url = list[i].getAttribute("href"),
@@ -176,7 +175,7 @@ class MangaService {
         return data
     }
 
-    fun details(url: String): Anime {
+    fun details(url: String): Manga {
         val driver = setWebDriver(url)
 
         val description = driver.findElement(By.xpath("//*[@class=\"media-description__text\"]")).text
@@ -223,7 +222,7 @@ class MangaService {
             chaptersUrl.add(it.findElement(By.tagName("a")).getAttribute("href"))
         }
 
-        return Anime(
+        return Manga(
             title = title,
             image = image,
             description = description,

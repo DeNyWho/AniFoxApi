@@ -24,9 +24,9 @@ class SwaggerConfig {
         return OpenAPI()
             .info(
                 Info().title("AniFox API")
-                    .description("Application de gestion des entites geographiques")
-                    .version("v0.0.1")
-                    .license(License().name("GPL 2.0").url("https://github.com/bangaromaric/api-geo/blob/main/LICENSE"))
+                    .description("Anifox Application API")
+                    .version("v2")
+                    .license(License().name("GPL 2.0").url("#"))
             )
             .externalDocs(
                 ExternalDocumentation()

@@ -9,11 +9,13 @@ import javax.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import com.example.anifoxapi.util.UserUtil.Companion.getCurrentUsername
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
+@Tag(name = "UserApi", description = "All about users ( need reworks)")
 @RequestMapping("/api2/user")
 class UserController {
 
