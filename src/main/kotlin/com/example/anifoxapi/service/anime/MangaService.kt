@@ -3,6 +3,7 @@ package com.example.anifoxapi.service.anime
 import com.example.anifoxapi.model.anime.Anime
 import com.example.anifoxapi.model.manga.MangaChapters
 import com.example.anifoxapi.model.manga.MangaTags
+import com.example.anifoxapi.model.manga.Pages
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
 import org.openqa.selenium.*
@@ -134,7 +135,6 @@ class MangaService {
             }
         }
 
-
         return data
     }
 
@@ -173,7 +173,6 @@ class MangaService {
             }
         }
 
-
         return data
     }
 
@@ -208,15 +207,14 @@ class MangaService {
         println(url)
 
         driver.get("$url?section=chapters")
-        println(driver.currentUrl)
         driver.navigate().to("$url?section=chapters")
         driver.manage().window().maximize()
+
         (driver as JavascriptExecutor)
             .executeScript("window.scrollTo(0, document.body.scrollHeight)")
         Thread.sleep(2000)
         val chapterName = scrollSmooth(driver)
 
-        println("CHAPTER NAME = ${chapterName.size}")
         val chaptersTitle = mutableListOf<String>()
         val chaptersUrl = mutableListOf<String>()
 
@@ -233,8 +231,22 @@ class MangaService {
             list = MangaTags(title = listTitleFinal, value = listValueFinal),
             chapters = MangaChapters(title = chaptersTitle.toList(), url = chaptersUrl.toList())
         )
+    }
 
+    fun readMangaByLink(url: String): List<String> {
+        val driver = setWebDriver(url)
+        val pagesReader = driver.findElement(By.xpath("//*[@class=\"button reader-pages__label reader-footer__btn\"]")).text
+        val pagesCount = pagesReader.replace("Страница 1 / ", "").toInt()
 
+        val pages = mutableListOf<String>()
+
+        for (page in 1 until pagesCount + 1 ) {
+            driver.get("$url?page=$page")
+            val imgs = driver.findElement(By.xpath("//*[@class=\"reader-view__wrap\"]"))
+            pages.add(imgs.findElement(By.tagName("img")).getAttribute("src"))
+        }
+
+        return pages.toList()
     }
 
     fun scrollSmooth(driver: WebDriver): List<WebElement> {

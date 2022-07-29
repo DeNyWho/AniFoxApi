@@ -40,8 +40,8 @@ class MangaParserController {
     @Operation(summary = "Get new popular manga")
     fun getPopularManga(
         @RequestParam countPage: Int,
-        @RequestParam( required = false) status: Int?,
-        @RequestParam( required = false) countCard: Int?
+        @RequestParam(required = false) status: Int?,
+        @RequestParam(required = false) countCard: Int?
     ): ServiceResponse<Anime> {
         return try {
             val data = service.popular(countPage, status, countCard)
@@ -58,7 +58,7 @@ class MangaParserController {
     @Operation(summary = "Get new update manga")
     fun getNewUpdateManga(
         @RequestParam countPage: Int,
-        @RequestParam( required = false) countCard: Int?
+        @RequestParam(required = false) countCard: Int?
     ): ServiceResponse<Anime> {
         return try {
             val data = service.newUpdate(countPage, countCard)
@@ -76,7 +76,7 @@ class MangaParserController {
     @Operation(summary = "Get most of views manga")
     fun getViewsManga(
         @RequestParam countPage: Int,
-        @RequestParam( required = false) countCard: Int?
+        @RequestParam(required = false) countCard: Int?
     ): ServiceResponse<Anime> {
         return try {
             val data = service.views(countPage, countCard)
@@ -100,10 +100,27 @@ class MangaParserController {
             return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        } catch (e: Exception) {
+            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
         }
+    }
+
+
+    @GetMapping("detailByLink")
+    @Operation(summary = "Get pages of manga")
+    fun getPagesOfManga(
+        @RequestParam url: String
+    ): ServiceResponse<String> {
+        return try {
+            val data = service.readMangaByLink(url)
+
+            return ServiceResponse(data = data, status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
 //        } catch (e: Exception) {
 //            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
 //        }
+        }
     }
 
 }
