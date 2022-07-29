@@ -240,7 +240,7 @@ class MangaService {
 
         val pages = mutableListOf<String>()
 
-        for (page in 1 until pagesCount + 1 ) {
+        for (page in 1 until pagesCount ) {
             driver.get("$url?page=$page")
             val imgs = driver.findElement(By.xpath("//*[@class=\"reader-view__wrap\"]"))
             pages.add(imgs.findElement(By.tagName("img")).getAttribute("src"))
