@@ -1,5 +1,6 @@
 package com.example.anifoxapi.model.anime
 
+import com.example.anifoxapi.model.manga.MangaChapters
 import com.example.anifoxapi.model.manga.MangaTags
 
 data class Anime(
@@ -9,7 +10,7 @@ data class Anime(
     val description: String = "",
     val tags: String = "",
     val list: MangaTags = MangaTags(),
-    val chapters: List<String> = listOf("")
+    val chapters: MangaChapters = MangaChapters(listOf(""),listOf(""))
 )
 
 fun Anime.convertToAnime(): Anime {

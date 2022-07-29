@@ -1,20 +1,14 @@
 package com.example.anifoxapi.service.anime
 
 import com.example.anifoxapi.model.anime.Anime
+import com.example.anifoxapi.model.manga.MangaChapters
 import com.example.anifoxapi.model.manga.MangaTags
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
-import org.openqa.selenium.By
-import org.openqa.selenium.JavascriptExecutor
-import org.openqa.selenium.Keys
-import org.openqa.selenium.WebDriver
+import org.openqa.selenium.*
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
-import org.openqa.selenium.firefox.FirefoxDriver
-import org.openqa.selenium.support.ui.ExpectedConditions
-import org.openqa.selenium.support.ui.WebDriverWait
 import org.springframework.stereotype.Service
-import java.time.Duration
 
 
 @Service
@@ -183,29 +177,6 @@ class MangaService {
         return data
     }
 
-
-    fun setWebDriver(url: String): WebDriver {
-        val pathDriver: String = when (getOS()) {
-            // Loaded from here https://chromedriver.storage.googleapis.com/index.html?path=101.0.4951.41/
-            OS.WINDOWS -> "_win32_101.exe"
-            OS.LINUX-> "_linux64_101"
-            OS.MAC-> "_mac64_101"
-            else -> throw Exception("Unknown operating system!")
-        }
-        System.setProperty("webdriver.chrome.driver", "driver/chromedriver$pathDriver");
-        val options = ChromeOptions()
-        options.addArguments("--headless")
-        val driver = ChromeDriver(options)
-        try {
-            driver.get(url);
-        } catch (e: Exception) {
-            println(e.message)
-
-            throw Exception(e.localizedMessage)
-        }
-        return driver
-    }
-
     fun details(url: String): Anime {
         val driver = setWebDriver(url)
 
@@ -214,7 +185,6 @@ class MangaService {
         val title = driver.findElement(By.xpath("//meta[@property='og:title']")).getAttribute("content")
         val tags = driver.findElement(By.xpath("//*[@class=\"media-tags\"]")).text.replace("\n",", ")
         val listTitle = driver.findElements(By.xpath("//*[@class=\"media-info-list__item\"]"))
-
         val listTitleReady = mutableListOf<String>()
         val listTitleFinal = mutableListOf<String>()
         val listValueFinal = mutableListOf<String>()
@@ -239,30 +209,70 @@ class MangaService {
 
         driver.get("$url?section=chapters")
         println(driver.currentUrl)
-        driver.findElements(By.xpath("//*[@class=\"media-chapter__name text-truncate\"]"))
-        Thread.sleep(500)
         driver.navigate().to("$url?section=chapters")
         driver.manage().window().maximize()
         (driver as JavascriptExecutor)
             .executeScript("window.scrollTo(0, document.body.scrollHeight)")
         Thread.sleep(2000)
-        val chapterName = WebDriverWait(driver, Duration.ofSeconds(3))
-            .until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//*[@class=\"media-chapter__name text-truncate\"]")))
+        val chapterName = scrollSmooth(driver)
+
         println("CHAPTER NAME = ${chapterName.size}")
-        val chapters = mutableListOf<String>()
+        val chaptersTitle = mutableListOf<String>()
+        val chaptersUrl = mutableListOf<String>()
 
         chapterName.forEach {
-            chapters.add(it.text)
+            chaptersTitle.add(it.text)
+            chaptersUrl.add(it.findElement(By.tagName("a")).getAttribute("href"))
         }
+
         return Anime(
             title = title,
             image = image,
             description = description,
             tags = tags,
             list = MangaTags(title = listTitleFinal, value = listValueFinal),
-            chapters = chapters.toList()
+            chapters = MangaChapters(title = chaptersTitle.toList(), url = chaptersUrl.toList())
         )
 
+
+    }
+
+    fun scrollSmooth(driver: WebDriver): List<WebElement> {
+        val newDimension = Dimension(2000, 40000)
+        driver.manage().window().size = newDimension
+        val newSetDimension = driver.manage().window().size
+        val newHeight = newSetDimension.getHeight()
+        val newWidth = newSetDimension.getWidth()
+        println("Current height: $newHeight")
+        println("Current width: $newWidth")
+        for (i in 0..999) {
+            (driver as JavascriptExecutor).executeScript("window.scrollBy(0,1000)", "")
+            driver.findElements(By.xpath("//*[@class=\"media-chapter__name text-truncate\"]"))
+        }
+        val list = driver.findElements(By.xpath("//*[@class=\"media-chapter__name text-truncate\"]"))
+        return list.toList()
+    }
+
+    fun setWebDriver(url: String): WebDriver {
+        val pathDriver: String = when (getOS()) {
+            // Loaded from here https://chromedriver.storage.googleapis.com/index.html?path=101.0.4951.41/
+            OS.WINDOWS -> "_win32_101.exe"
+            OS.LINUX-> "_linux64_101"
+            OS.MAC-> "_mac64_101"
+            else -> throw Exception("Unknown operating system!")
+        }
+        System.setProperty("webdriver.chrome.driver", "driver/chromedriver$pathDriver");
+        val options = ChromeOptions()
+        options.addArguments("--headless")
+        val driver = ChromeDriver(options)
+        try {
+            driver.get(url);
+        } catch (e: Exception) {
+            println(e.message)
+
+            throw Exception(e.localizedMessage)
+        }
+        return driver
     }
 
 
