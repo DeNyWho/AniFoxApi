@@ -17,9 +17,14 @@ repositories {
     mavenCentral()
 }
 
-extra["springBootAdminVersion"] = "2.7.1"
+//extra["springBootAdminVersion"] = "2.7.1"
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-actuator:2.1.3.RELEASE")
+    implementation("org.springframework.boot:spring-boot-starter-web:2.1.3.RELEASE")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:2.1.3.RELEASE")
+    implementation("org.springframework.boot:spring-boot-starter-mail:2.1.3.RELEASE")
+    implementation("org.springframework.boot:spring-boot-starter-security:2.1.3.RELEASE")
     // KotlinX Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
     // Swagger
@@ -37,7 +42,7 @@ dependencies {
     // Chrome Driver for Selenium
     implementation("org.seleniumhq.selenium:selenium-chrome-driver:4.2.1")
 
-    implementation("com.google.code.gson:gson:2.8.9")
+    implementation("com.google.code.gson:gson:2.9.0")
     implementation("io.jsonwebtoken:jjwt:0.9.1")
 
     implementation("org.apache.tomcat.embed:tomcat-embed-core:9.0.56")
@@ -49,14 +54,17 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-mail")
-//    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-//    implementation("org.springframework.boot:spring-boot-starter-security")
-//    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("de.codecentric:spring-boot-admin-starter-client")
-    implementation("de.codecentric:spring-boot-admin-starter-server")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf:2.1.3.RELEASE")
+    implementation("commons-io:commons-io:2.4")
+    implementation("io.jsonwebtoken:jjwt:0.9.0")
+    implementation("io.jsonwebtoken:jjwt-api:0.10.6")
+    implementation("com.mashape.unirest:unirest-java:1.4.9")
+//    implementation("de.codecentric:spring-boot-admin-starter-client")
+//    implementation("de.codecentric:spring-boot-admin-starter-server")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.springframework.session:spring-session-core")
+    implementation("org.projectlombok:lombok:1.18.22")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -64,11 +72,11 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("de.codecentric:spring-boot-admin-dependencies:${property("springBootAdminVersion")}")
-    }
-}
+//dependencyManagement {
+//    imports {
+//        mavenBom("de.codecentric:spring-boot-admin-dependencies:${property("springBootAdminVersion")}")
+//    }
+//}
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

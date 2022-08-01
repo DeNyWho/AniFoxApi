@@ -1,84 +1,74 @@
 package com.example.anifoxapi.service.user
 
-import com.example.anifoxapi.model.user.dto.User
+import com.example.anifoxapi.jpa.User
+import com.example.anifoxapi.jpa.VerificationToken
+import com.example.anifoxapi.repository.user.UserDetailsService
 import com.example.anifoxapi.repository.user.UserRepository
-import com.example.anifoxapi.util.SecurityUtil.Companion.encryptSHA256
+import com.example.anifoxapi.repository.user.VerificationTokenRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
+import java.util.*
+import java.util.stream.Collectors
 
 @Service
-class UserService {
+class UserService: UserDetailsService {
+    @Autowired
+    lateinit var userRepository: UserRepository
 
     @Autowired
-    lateinit var repository: UserRepository
+    lateinit var tokenRepository: VerificationTokenRepository
 
+    @Throws(UsernameNotFoundException::class)
+    override fun loadUserByUsername(username: String): UserDetails {
+        val user = userRepository.findByUsername(username).get()
 
-    fun getById(id: Int): User? {
-        val data = repository.findById(id)
-        return data.get()
+        val authorities: List<GrantedAuthority> = user.roles!!.stream().map { role -> SimpleGrantedAuthority(role.name) }
+            .collect(
+            Collectors.toList<GrantedAuthority>())
+
+        return org.springframework.security.core.userdetails.User
+            .withUsername(username)
+            .password(user.password)
+            .authorities(authorities)
+            .accountExpired(false)
+            .accountLocked(false)
+            .credentialsExpired(false)
+            .disabled(false)
+            .build()
     }
 
-    fun getUserByUsername(username: String): User? {
-        if (username.isEmpty())
-            throw Exception("username is empty")
-        return repository.findUserByUsername(username)
+    override fun createVerificationTokenForUser(token: String, user: User) {
+        tokenRepository.save(VerificationToken(token, user))
     }
 
-    fun insert(data: User): User {
-        if (data.id <= 0)
-            throw Exception("invalid user id")
-        if (data.username.isEmpty())
-            throw Exception("username is empty")
-        if (data.password.isEmpty())
-            throw Exception("password is empty")
-        if (data.firstName.isEmpty())
-            throw Exception("firstName is empty")
-        if (data.lastName.isEmpty())
-            throw Exception("lastName is empty")
-        val duplicate = getUserByUsername(data.username)
-        if (duplicate != null)
-            throw Exception("this username is already exists")
-        val hashPass = encryptSHA256(data.password)
-        data.password = hashPass
-        val savedData = repository.save(data)
-        savedData.password = ""
-        return savedData
+    override fun validateVerificationToken(token: String): String {
+        val verificationToken: Optional<VerificationToken> = tokenRepository.findByToken(token)
+
+        if (verificationToken.isPresent) {
+            val user: User? = verificationToken.get().user
+            val cal: Calendar = Calendar.getInstance()
+            if ((verificationToken.get().expiryDate!!.time - cal.time.time) <= 0) {
+                tokenRepository.delete(verificationToken.get())
+                return TOKEN_EXPIRED
+            }
+
+            user!!.enabled = true
+            tokenRepository.delete(verificationToken.get())
+            userRepository.save(user)
+            return TOKEN_VALID
+        } else {
+            return TOKEN_INVALID
+        }
+
     }
 
-    fun getByUsernameAndPass(userName: String, password: String): User? {
-        if (userName.isEmpty() && password.isEmpty())
-            throw Exception("username and password are empty")
-        if (userName.isEmpty())
-            throw Exception("username is empty")
-        if (password.isEmpty())
-            throw Exception("password is empty")
-        val hashPass = encryptSHA256(password)
-        return repository.findFirstByUsernameAndPassword(userName, hashPass)
+    companion object {
+        const val TOKEN_VALID: String = "valid"
+        const val TOKEN_INVALID: String = "invalid"
+        const val TOKEN_EXPIRED: String = "expired"
     }
-
-    fun getTotalCount(): Long {
-        return repository.count()
-    }
-
-    fun changePassword(data: User, repeatPass: String, oldPass: String, currentUser: String): User {
-        val user = repository.findUserByUsername(currentUser)
-        if (user == null || data.id != user.id)
-            throw Exception("you don't have permission")
-        if (data.username.isEmpty())
-            throw Exception("username is empty")
-        if (oldPass.isEmpty())
-            throw Exception("old pass is empty")
-        if (data.password.isEmpty() || repeatPass.isEmpty())
-            throw Exception("enter password and repeat")
-        if (data.password != repeatPass)
-            throw Exception("password and repeat are not match ")
-        if (encryptSHA256(oldPass) != user.password)
-            throw Exception("current pass is false")
-        val hashPass = encryptSHA256(data.password)
-        user.password = hashPass
-        val savedData = repository.save(user)
-        savedData.password = ""
-        return savedData
-    }
-
 }

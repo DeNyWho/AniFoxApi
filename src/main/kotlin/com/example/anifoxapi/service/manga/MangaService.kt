@@ -3,6 +3,7 @@ package com.example.anifoxapi.service.manga
 import com.example.anifoxapi.model.manga.Manga
 import com.example.anifoxapi.model.manga.MangaChapters
 import com.example.anifoxapi.model.manga.MangaTags
+import com.example.anifoxapi.repository.manga.MangaRepository
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
 import org.openqa.selenium.*
@@ -12,9 +13,9 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class MangaService {
+class MangaService: MangaRepository {
 
-    fun search(query: String): List<Manga> {
+    override fun search(query: String): List<Manga> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
         driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=1&types[]=1")
 
@@ -33,10 +34,12 @@ class MangaService {
                 )
             )
         }
+        driver.quit()
+
         return data
     }
 
-    fun popular(countPage: Int, status: Int?, countCard: Int?): List<Manga>{
+    override fun popular(countPage: Int, status: Int?, countCard: Int?): List<Manga>{
         val driver = setWebDriver("https://mangalib.me/manga-list")
         val data = mutableListOf<Manga>()
 
@@ -96,10 +99,13 @@ class MangaService {
                 }
             }
         }
+        driver.quit()
+
+
         return data
     }
 
-    fun newUpdate(countPage: Int, countCard: Int?): List<Manga> {
+    override fun newUpdate(countPage: Int, countCard: Int?): List<Manga> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
         val data = mutableListOf<Manga>()
 
@@ -133,11 +139,12 @@ class MangaService {
                 )
             }
         }
+        driver.quit()
 
         return data
     }
 
-    fun views(countPage: Int, countCard: Int?): List<Manga> {
+    override fun views(countPage: Int, countCard: Int?): List<Manga> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
         val data = mutableListOf<Manga>()
 
@@ -171,11 +178,12 @@ class MangaService {
                 )
             }
         }
+        driver.quit()
 
         return data
     }
 
-    fun details(url: String): Manga {
+    override fun details(url: String): Manga {
         val driver = setWebDriver(url)
 
         val description = driver.findElement(By.xpath("//*[@class=\"media-description__text\"]")).text
@@ -221,6 +229,7 @@ class MangaService {
             chaptersTitle.add(it.text)
             chaptersUrl.add(it.findElement(By.tagName("a")).getAttribute("href"))
         }
+        driver.quit()
 
         return Manga(
             title = title,
@@ -232,7 +241,7 @@ class MangaService {
         )
     }
 
-    fun readMangaByLink(url: String): List<String> {
+    override fun readMangaByLink(url: String): List<String> {
         val driver = setWebDriver(url)
         val pagesReader = driver.findElement(By.xpath("//*[@class=\"button reader-pages__label reader-footer__btn\"]")).text
         val pagesCount = pagesReader.replace("Страница 1 / ", "").toInt()
@@ -245,6 +254,7 @@ class MangaService {
             pages.add(imgs.findElement(By.tagName("img")).getAttribute("src"))
         }
 
+        driver.quit()
         return pages.toList()
     }
 

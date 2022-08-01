@@ -1,8 +1,5 @@
 package com.example.anifoxapi.model.anime
 
-import com.example.anifoxapi.model.manga.MangaChapters
-import com.example.anifoxapi.model.manga.MangaTags
-
 //data class Anime(
 //    var title: String = "",
 //    var image: String = "",
