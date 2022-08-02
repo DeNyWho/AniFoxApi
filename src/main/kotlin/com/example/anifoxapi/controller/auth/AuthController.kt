@@ -84,7 +84,7 @@ class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication)
             val jwt: String = jwtProvider.generateJwtToken(user.username!!)
 
-            val cookie: Cookie = Cookie(authCookieName, jwt)
+            val cookie = Cookie(authCookieName, jwt)
             cookie.maxAge = jwtProvider.jwtExpiration!!
             cookie.secure = isCookieSecure
             cookie.isHttpOnly = true
@@ -124,7 +124,7 @@ class AuthController {
             }
 
             try {
-//                 Creating user's account
+
                 val user = User(
                     0,
                     newUser.username!!,
@@ -163,7 +163,7 @@ class AuthController {
         }
     }
 
-    @PostMapping("/registrationConfirm")
+    @GetMapping("/registrationConfirm")
     @CrossOrigin(origins = ["*"])
     @Throws(UnsupportedEncodingException::class)
     fun confirmRegistration(request: HttpServletRequest, model: Model, @RequestParam("token") token: String): ResponseEntity<*> {
@@ -179,7 +179,7 @@ class AuthController {
 
     @PostMapping("/logout")
     fun logout(response: HttpServletResponse): ResponseEntity<*> {
-        val cookie: Cookie = Cookie(authCookieName, null)
+        val cookie = Cookie(authCookieName, null)
         cookie.maxAge = 0
         cookie.secure = isCookieSecure
         cookie.isHttpOnly = true
