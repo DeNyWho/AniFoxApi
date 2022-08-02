@@ -2,6 +2,7 @@ package com.example.anifoxapi.service.manga
 
 import com.example.anifoxapi.model.manga.Manga
 import com.example.anifoxapi.model.manga.MangaChapters
+import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.manga.MangaTags
 import com.example.anifoxapi.repository.manga.MangaRepository
 import com.example.anifoxapi.util.OS
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service
 @Service
 class MangaService: MangaRepository {
 
-    override fun search(query: String): List<Manga> {
+    override fun search(query: String): List<MangaLightResponse> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
         driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=1&types[]=1")
 
@@ -24,10 +25,10 @@ class MangaService: MangaRepository {
         searchBox.sendKeys(query, Keys.ENTER)
         Thread.sleep(500)
         val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
-        val data = mutableListOf<Manga>()
+        val data = mutableListOf<MangaLightResponse>()
         for (i in 0 until list.size){
             data.add(
-                Manga(
+                MangaLightResponse(
                     title = list[i].text.drop(6),
                     image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                     url = list[i].getAttribute("href")
@@ -39,9 +40,9 @@ class MangaService: MangaRepository {
         return data
     }
 
-    override fun popular(countPage: Int, status: Int?, countCard: Int?): List<Manga>{
+    override fun popular(countPage: Int, status: Int?, countCard: Int?): List<MangaLightResponse>{
         val driver = setWebDriver("https://mangalib.me/manga-list")
-        val data = mutableListOf<Manga>()
+        val data = mutableListOf<MangaLightResponse>()
 
         if(countCard == null) {
             for (i in 0 until countPage) {
@@ -51,9 +52,10 @@ class MangaService: MangaRepository {
                     val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                     for (i in 0 until list.size) {
                         data.add(
-                            Manga(
+                            MangaLightResponse(
                                 title = list[i].text.drop(6),
                                 image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                                list[i].getAttribute("href")
                             )
                         )
                     }
@@ -63,9 +65,10 @@ class MangaService: MangaRepository {
                     val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                     for (i in 0 until list.size) {
                         data.add(
-                            Manga(
+                            MangaLightResponse(
                                 title = list[i].text.drop(6),
                                 image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                                list[i].getAttribute("href")
                             )
                         )
                     }
@@ -78,9 +81,10 @@ class MangaService: MangaRepository {
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until countCard) {
                     data.add(
-                        Manga(
+                        MangaLightResponse(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
+                            list[i].getAttribute("href")
                         )
                     )
                 }
@@ -90,7 +94,7 @@ class MangaService: MangaRepository {
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until countCard) {
                     data.add(
-                        Manga(
+                        MangaLightResponse(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             url = list[i].getAttribute("href"),
@@ -105,9 +109,9 @@ class MangaService: MangaRepository {
         return data
     }
 
-    override fun newUpdate(countPage: Int, countCard: Int?): List<Manga> {
+    override fun newUpdate(countPage: Int, countCard: Int?): List<MangaLightResponse> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
-        val data = mutableListOf<Manga>()
+        val data = mutableListOf<MangaLightResponse>()
 
         if(countCard == null) {
             for (i in 0 until countPage) {
@@ -116,7 +120,7 @@ class MangaService: MangaRepository {
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until list.size) {
                     data.add(
-                        Manga(
+                        MangaLightResponse(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             url = list[i].getAttribute("href"),
@@ -131,7 +135,7 @@ class MangaService: MangaRepository {
             val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
             for (i in 0 until countCard) {
                 data.add(
-                    Manga(
+                    MangaLightResponse(
                         title = list[i].text.drop(6),
                         image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                         url = list[i].getAttribute("href"),
@@ -144,9 +148,9 @@ class MangaService: MangaRepository {
         return data
     }
 
-    override fun views(countPage: Int, countCard: Int?): List<Manga> {
+    override fun views(countPage: Int, countCard: Int?): List<MangaLightResponse> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
-        val data = mutableListOf<Manga>()
+        val data = mutableListOf<MangaLightResponse>()
 
         if(countCard == null) {
             for (i in 0 until countPage) {
@@ -155,7 +159,7 @@ class MangaService: MangaRepository {
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until list.size) {
                     data.add(
-                        Manga(
+                        MangaLightResponse(
                             title = list[i].text.drop(6),
                             image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                             url = list[i].getAttribute("href"),
@@ -170,7 +174,7 @@ class MangaService: MangaRepository {
             val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
             for (i in 0 until countCard) {
                 data.add(
-                    Manga(
+                    MangaLightResponse(
                         title = list[i].text.drop(6),
                         image = list[i].getCssValue("background-image").drop(5).dropLast(2),
                         url = list[i].getAttribute("href"),
@@ -183,13 +187,15 @@ class MangaService: MangaRepository {
         return data
     }
 
+
+
     override fun details(url: String): Manga {
         val driver = setWebDriver(url)
 
         val description = driver.findElement(By.xpath("//*[@class=\"media-description__text\"]")).text
         val image = driver.findElement(By.xpath("//meta[@property='og:image']")).getAttribute("content")
         val title = driver.findElement(By.xpath("//meta[@property='og:title']")).getAttribute("content")
-        val tags = driver.findElement(By.xpath("//*[@class=\"media-tags\"]")).text.replace("\n",", ")
+        val tags = driver.findElement(By.xpath("//*[@class=\"media-tags\"]")).text.replace("\n",",")
         val listTitle = driver.findElements(By.xpath("//*[@class=\"media-info-list__item\"]"))
         val listTitleReady = mutableListOf<String>()
         val listTitleFinal = mutableListOf<String>()
@@ -235,7 +241,7 @@ class MangaService: MangaRepository {
             title = title,
             image = image,
             description = description,
-            tags = tags,
+            genres = tags.split(","),
             list = MangaTags(title = listTitleFinal, value = listValueFinal),
             chapters = MangaChapters(title = chaptersTitle.toList(), url = chaptersUrl.toList())
         )

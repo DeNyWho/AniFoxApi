@@ -1,6 +1,7 @@
 package com.example.anifoxapi.controller.anime
 
 import com.example.anifoxapi.model.manga.Manga
+import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.service.manga.MangaService
 import io.swagger.v3.oas.annotations.Operation
@@ -25,7 +26,7 @@ class MangaParserController {
     @Operation(summary = "Search anime")
     fun search(
         @RequestParam search: String,
-    ): ServiceResponse<Manga> {
+    ): ServiceResponse<MangaLightResponse> {
         return try {
             val data = service.search(query = search)
             println("data = $data")
@@ -43,7 +44,7 @@ class MangaParserController {
         @RequestParam countPage: Int,
         @RequestParam(required = false) status: Int?,
         @RequestParam(required = false) countCard: Int?
-    ): ServiceResponse<Manga> {
+    ): ServiceResponse<MangaLightResponse> {
         return try {
             val data = service.popular(countPage, status, countCard)
 
@@ -60,7 +61,7 @@ class MangaParserController {
     fun getNewUpdateManga(
         @RequestParam countPage: Int,
         @RequestParam(required = false) countCard: Int?
-    ): ServiceResponse<Manga> {
+    ): ServiceResponse<MangaLightResponse> {
         return try {
             val data = service.newUpdate(countPage, countCard)
 
@@ -78,7 +79,7 @@ class MangaParserController {
     fun getViewsManga(
         @RequestParam countPage: Int,
         @RequestParam(required = false) countCard: Int?
-    ): ServiceResponse<Manga> {
+    ): ServiceResponse<MangaLightResponse> {
         return try {
             val data = service.views(countPage, countCard)
 
@@ -118,9 +119,8 @@ class MangaParserController {
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
-//        } catch (e: Exception) {
-//            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
-//        }
+        } catch (e: Exception) {
+            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
         }
     }
 

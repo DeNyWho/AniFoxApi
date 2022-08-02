@@ -5,7 +5,7 @@ data class Manga(
     var image: String = "",
     var url: String = "",
     val description: String = "",
-    val tags: String = "",
+    val genres: List<String> = listOf(""),
     val list: MangaTags = MangaTags(),
     val chapters: MangaChapters = MangaChapters(listOf(""),listOf(""))
 )
