@@ -40,14 +40,14 @@ class MangaService: MangaRepository {
         return data
     }
 
-    override fun popular(countPage: Int, status: Int?, countCard: Int?): List<MangaLightResponse>{
+    override fun manga(countPage: Int, status: Int?, countCard: Int?, sort: String?): List<MangaLightResponse>{
         val driver = setWebDriver("https://mangalib.me/manga-list")
         val data = mutableListOf<MangaLightResponse>()
 
         if(countCard == null) {
             for (i in 0 until countPage) {
                 if (status == null) {
-                    driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=${i + 1}&types[]=1")
+                    driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=${i + 1}&types[]=1")
                     Thread.sleep(500)
                     val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                     for (i in 0 until list.size) {
@@ -60,7 +60,7 @@ class MangaService: MangaRepository {
                         )
                     }
                 } else {
-                    driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=${i + 1}&status[]=$status&types[]=1")
+                    driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=${i + 1}&status[]=$status&types[]=1")
                     Thread.sleep(500)
                     val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                     for (i in 0 until list.size) {
@@ -76,7 +76,7 @@ class MangaService: MangaRepository {
             }
         } else {
             if (status == null) {
-                driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=1&types[]=1")
+                driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=1&types[]=1")
                 Thread.sleep(500)
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until countCard) {
@@ -89,7 +89,7 @@ class MangaService: MangaRepository {
                     )
                 }
             } else {
-                driver.get("https://mangalib.me/manga-list?sort=rate&dir=desc&page=1&status[]=$status&types[]=1")
+                driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=1&status[]=$status&types[]=1")
                 Thread.sleep(500)
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until countCard) {
@@ -108,85 +108,6 @@ class MangaService: MangaRepository {
 
         return data
     }
-
-    override fun newUpdate(countPage: Int, countCard: Int?): List<MangaLightResponse> {
-        val driver = setWebDriver("https://mangalib.me/manga-list")
-        val data = mutableListOf<MangaLightResponse>()
-
-        if(countCard == null) {
-            for (i in 0 until countPage) {
-                driver.get("https://mangalib.me/manga-list?sort=last_chapter_at&dir=desc&page=$countPage&types[]=1")
-                Thread.sleep(500)
-                val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
-                for (i in 0 until list.size) {
-                    data.add(
-                        MangaLightResponse(
-                            title = list[i].text.drop(6),
-                            image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                            url = list[i].getAttribute("href"),
-                        )
-                    )
-                }
-            }
-        }
-        else {
-            driver.get("https://mangalib.me/manga-list?sort=last_chapter_at&dir=desc&page=$countPage&types[]=1")
-            Thread.sleep(500)
-            val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
-            for (i in 0 until countCard) {
-                data.add(
-                    MangaLightResponse(
-                        title = list[i].text.drop(6),
-                        image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                        url = list[i].getAttribute("href"),
-                    )
-                )
-            }
-        }
-        driver.quit()
-
-        return data
-    }
-
-    override fun views(countPage: Int, countCard: Int?): List<MangaLightResponse> {
-        val driver = setWebDriver("https://mangalib.me/manga-list")
-        val data = mutableListOf<MangaLightResponse>()
-
-        if(countCard == null) {
-            for (i in 0 until countPage) {
-                driver.get("https://mangalib.me/manga-list?sort=views&dir=desc&page=$countPage&types[]=1")
-                Thread.sleep(500)
-                val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
-                for (i in 0 until list.size) {
-                    data.add(
-                        MangaLightResponse(
-                            title = list[i].text.drop(6),
-                            image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                            url = list[i].getAttribute("href"),
-                        )
-                    )
-                }
-            }
-        }
-        else {
-            driver.get("https://mangalib.me/manga-list?sort=views&dir=desc&page=$countPage&types[]=1")
-            Thread.sleep(500)
-            val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
-            for (i in 0 until countCard) {
-                data.add(
-                    MangaLightResponse(
-                        title = list[i].text.drop(6),
-                        image = list[i].getCssValue("background-image").drop(5).dropLast(2),
-                        url = list[i].getAttribute("href"),
-                    )
-                )
-            }
-        }
-        driver.quit()
-
-        return data
-    }
-
 
 
     override fun details(url: String): Manga {

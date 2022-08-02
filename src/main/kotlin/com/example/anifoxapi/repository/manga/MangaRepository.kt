@@ -9,14 +9,13 @@ interface MangaRepository {
 
     fun search(query: String): List<MangaLightResponse>
 
-    fun popular(countPage: Int, status: Int?, countCard: Int?): List<MangaLightResponse>
-
-    fun newUpdate(countPage: Int, countCard: Int?): List<MangaLightResponse>
-
-    fun views(countPage: Int, countCard: Int?): List<MangaLightResponse>
+//    fun newUpdate(countPage: Int, countCard: Int?): List<MangaLightResponse>
+//
+//    fun views(countPage: Int, countCard: Int?): List<MangaLightResponse>
 
     fun details(url: String): Manga
 
     fun readMangaByLink(url: String): List<String>
 
+    fun manga(countPage: Int, status: Int?, countCard: Int?, sort: String?): List<MangaLightResponse>
 }
