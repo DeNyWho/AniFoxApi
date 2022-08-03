@@ -30,6 +30,7 @@ class JwtProvider {
 
     fun validateJwtToken(authToken: String): Boolean {
         try {
+            println(authToken)
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken)
             return true
         } catch (e: SignatureException) {
