@@ -1,16 +1,28 @@
 package com.example.anifoxapi.service.manga
 
-import com.example.anifoxapi.model.manga.Manga
-import com.example.anifoxapi.model.manga.MangaChapters
-import com.example.anifoxapi.model.manga.MangaLightResponse
-import com.example.anifoxapi.model.manga.MangaTags
+import com.example.anifoxapi.model.manga.*
 import com.example.anifoxapi.repository.manga.MangaRepository
+import com.example.anifoxapi.util.Constants.BASE_MANGA_URL
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
+import it.skrape.core.document
+import it.skrape.fetcher.HttpFetcher
+import it.skrape.fetcher.response
+import it.skrape.fetcher.skrape
+import it.skrape.selects.eachAttribute
+import it.skrape.selects.eachHref
+import it.skrape.selects.eachText
+import it.skrape.selects.html5.a
+import it.skrape.selects.html5.div
+import it.skrape.selects.html5.li
+import it.skrape.selects.html5.span
 import org.openqa.selenium.*
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
+import org.openqa.selenium.interactions.Actions
 import org.springframework.stereotype.Service
+import java.awt.Robot
+import java.awt.event.KeyEvent
 
 
 @Service
@@ -40,15 +52,89 @@ class MangaService: MangaRepository {
         return data
     }
 
+    override fun addPopularDataToDB(): List<NewManga> {
+        var maxId = 0
+        var pageSize = 0
+        var urls = mutableListOf<String>()
+        var images = mutableListOf<String>()
+        var titles = mutableListOf<String>()
+        var list = mutableListOf<NewManga>()
+
+        skrape(HttpFetcher) {
+            request {
+                url = "https://mangahub.ru/explore/genres-is-nor-erotica/sort-is-date?page=1"
+            }
+            response {
+                document.span {
+                    withClass = "badge.bg-primary.ms-1"
+                    maxId = findAll { return@findAll eachText }[0].toInt()
+                }
+                document.li {
+                    withClass = "page-item"
+                    val pages = findAll { return@findAll eachText }
+                    pageSize = pages[pages.lastIndex-1].toInt()
+                }
+            }
+        }
+        for ( i in 1 until pageSize + 1 ) {
+            println(i)
+            skrape(HttpFetcher) {
+                request {
+                    url = "https://mangahub.ru/explore/genres-is-nor-erotica/sort-is-date?page=$i"
+                }
+                response {
+                    //title
+                    document.a {
+                        withClass = "comic-grid-name"
+                        titles.addAll(findAll{ return@findAll eachText})
+                    }
+                    //urls
+                    document.a {
+                        withClass = "d-block.position-relative"
+                        urls.addAll(findAll{ return@findAll eachHref}.map { "https://mangahub.ru$it"} )
+                    }
+                    //image
+                    document.div {
+                        withClass = "comic-grid-image"
+                        images.addAll(findAll { return@findAll eachAttribute("data-background-image") })
+                    }
+                }
+            }
+        }
+        println("urls = ${urls.size}")
+        println("images = ${images.size}")
+        println("titles = ${titles.size}")
+        for ( i in 0 until urls.size) {
+            list.add(
+                NewManga(
+                    id = maxId,
+                    title = titles[i],
+                    image = images[i],
+                    url = urls[i],
+                )
+            )
+            maxId -= 1
+        }
+        println(list)
+        return list.toList()
+    }
+
     override fun manga(countPage: Int, status: Int?, countCard: Int?, sort: String?): List<MangaLightResponse>{
         val driver = setWebDriver("https://mangalib.me/manga-list")
         val data = mutableListOf<MangaLightResponse>()
+        val newDimension = Dimension(2000, 4000)
+        driver.manage().window().size = newDimension
+        val newSetDimension = driver.manage().window().size
+        val newHeight = newSetDimension.getHeight()
+        val newWidth = newSetDimension.getWidth()
+        println("Current height: $newHeight")
+        println("Current width: $newWidth")
 
         if(countCard == null) {
             for (i in 0 until countPage) {
                 if (status == null) {
-                    driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=${i + 1}&types[]=1")
                     Thread.sleep(500)
+                    driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=${i + 1}&types[]=1")
                     val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                     for (i in 0 until list.size) {
                         data.add(
@@ -60,8 +146,9 @@ class MangaService: MangaRepository {
                         )
                     }
                 } else {
-                    driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=${i + 1}&status[]=$status&types[]=1")
                     Thread.sleep(500)
+
+                    driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=${i + 1}&status[]=$status&types[]=1")
                     val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                     for (i in 0 until list.size) {
                         data.add(
@@ -76,8 +163,9 @@ class MangaService: MangaRepository {
             }
         } else {
             if (status == null) {
-                driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=1&types[]=1")
                 Thread.sleep(500)
+
+                driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=1&types[]=1")
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until countCard) {
                     data.add(
@@ -89,8 +177,9 @@ class MangaService: MangaRepository {
                     )
                 }
             } else {
-                driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=1&status[]=$status&types[]=1")
                 Thread.sleep(500)
+
+                driver.get("https://mangalib.me/manga-list?sort=$sort&dir=desc&page=1&status[]=$status&types[]=1")
                 val list = driver.findElements(By.xpath("//*[@class=\"media-card\"]"))
                 for (i in 0 until countCard) {
                     data.add(
@@ -168,6 +257,17 @@ class MangaService: MangaRepository {
         )
     }
 
+    override fun test(): List<String> {
+        val driver = setWebDriver("https://mangalib.me/")
+        val list = mutableListOf<String>()
+        val elems = driver.findElements(By.xpath("//a[@href]"))
+        for( i in 0 until elems.size){
+            list.add(elems[i].getAttribute("href"))
+        }
+        println(list.size)
+        return list
+    }
+
     override fun readMangaByLink(url: String): List<String> {
         val driver = setWebDriver(url)
         val pagesReader = driver.findElement(By.xpath("//*[@class=\"button reader-pages__label reader-footer__btn\"]")).text
@@ -186,17 +286,18 @@ class MangaService: MangaRepository {
     }
 
     fun scrollSmooth(driver: WebDriver): List<WebElement> {
-        val newDimension = Dimension(2000, 40000)
+        val newDimension = Dimension(20000, 90000)
         driver.manage().window().size = newDimension
         val newSetDimension = driver.manage().window().size
         val newHeight = newSetDimension.getHeight()
         val newWidth = newSetDimension.getWidth()
         println("Current height: $newHeight")
         println("Current width: $newWidth")
-        for (i in 0..999) {
-            (driver as JavascriptExecutor).executeScript("window.scrollBy(0,1000)", "")
+        val action = Actions(driver)
+        action.sendKeys(Keys.PAGE_DOWN).build().perform()
+
+//            (driver as JavascriptExecutor).executeScript("window.scrollBy(0,1000)", "")
             driver.findElements(By.xpath("//*[@class=\"media-chapter__name text-truncate\"]"))
-        }
         val list = driver.findElements(By.xpath("//*[@class=\"media-chapter__name text-truncate\"]"))
         return list.toList()
     }

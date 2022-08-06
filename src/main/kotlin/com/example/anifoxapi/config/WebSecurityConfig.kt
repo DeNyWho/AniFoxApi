@@ -74,8 +74,8 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
         http
                 .cors().and()
                 .csrf().disable().authorizeRequests()
-                .antMatchers("/api2/user/**").permitAll()
-                .anyRequest().authenticated()
+            .antMatchers("/api2/user/**").authenticated()
+            .anyRequest().permitAll()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -85,6 +85,6 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Throws(Exception::class)
     override fun configure(web: WebSecurity) {
-        web.ignoring().antMatchers("/api2/signin", "/api2/signup", "/api2/registrationConfirm", "/api2/manga/**")
+        web.ignoring().antMatchers("/api2/signin", "/api2/signup", "/api2/registrationConfirm", "/api2/manga/**", "/swagger-ui/index.html#/")
     }
 }

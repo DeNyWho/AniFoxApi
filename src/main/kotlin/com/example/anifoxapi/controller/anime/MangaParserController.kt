@@ -2,6 +2,7 @@ package com.example.anifoxapi.controller.anime
 
 import com.example.anifoxapi.model.manga.Manga
 import com.example.anifoxapi.model.manga.MangaLightResponse
+import com.example.anifoxapi.model.manga.NewManga
 import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.service.manga.MangaService
 import io.swagger.v3.oas.annotations.Operation
@@ -68,11 +69,31 @@ class MangaParserController {
             return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
-        } catch (e: Exception) {
-            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+//        } catch (e: Exception) {
+//            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+//        }
         }
     }
 
+    @GetMapping("tester")
+    @Operation(summary = "Get tester of manga")
+    fun tester(): ServiceResponse<List<NewManga>> {
+        return try {
+            val start = System.currentTimeMillis()
+            val data = service.addPopularDataToDB()
+
+            val finish = System.currentTimeMillis()
+            val elapsed = finish - start
+            println("Время выполнения $elapsed")
+            println(data.size)
+            return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+//        } catch (e: Exception) {
+//            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+//        }
+        }
+    }
 
     @GetMapping("detailByLink")
     @Operation(summary = "Get pages of manga")

@@ -36,6 +36,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    implementation("it.skrape:skrapeit:1.2.2")
     // Selenium WebDrive
     implementation("org.seleniumhq.selenium:selenium-java:4.2.1")
 
