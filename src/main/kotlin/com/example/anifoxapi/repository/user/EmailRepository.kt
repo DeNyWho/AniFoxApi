@@ -1,7 +1,6 @@
 package com.example.anifoxapi.repository.user
 
-import com.example.anifoxapi.jpa.User
-import org.springframework.stereotype.Repository
+import com.example.anifoxapi.jpa.user.User
 
 
 interface EmailRepository {

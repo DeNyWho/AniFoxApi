@@ -1,24 +1,25 @@
-package com.example.anifoxapi.jpa
+package com.example.anifoxapi.jpa.user
 
-import java.sql.*
+import java.sql.Date
+import java.sql.Timestamp
+import java.util.*
 import javax.persistence.*
-import java.util.Calendar
 
 @Entity
 @Table(name = "verification_token")
 data class VerificationToken(
 
-        @Id
+    @Id
         @GeneratedValue(strategy = GenerationType.AUTO)
         val id: Long? = 0,
 
-        @Column(name = "token")
+    @Column(name = "token")
         var token: String? = null,
 
-        @Column(name = "expiry_date")
+    @Column(name = "expiry_date")
         val expiryDate: Date? = null,
 
-        @OneToOne(targetEntity = User::class, fetch = FetchType.EAGER, cascade = [CascadeType.PERSIST])
+    @OneToOne(targetEntity = User::class, fetch = FetchType.EAGER, cascade = [CascadeType.PERSIST])
         @JoinColumn(nullable = false, name = "user_id")
         val user: User? = null
 ) {
@@ -26,8 +27,8 @@ data class VerificationToken(
 }
 
 private fun calculateExpiryDate(expiryTimeInMinutes: Int): Date {
-        val cal = Calendar.getInstance()
-        cal.time = Timestamp(cal.time.time)
-        cal.add(Calendar.MINUTE, expiryTimeInMinutes)
-        return Date(cal.time.time)
+    val cal = Calendar.getInstance()
+    cal.time = Timestamp(cal.time.time)
+    cal.add(Calendar.MINUTE, expiryTimeInMinutes)
+    return Date(cal.time.time)
 }

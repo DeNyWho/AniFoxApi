@@ -1,6 +1,6 @@
 package com.example.anifoxapi.service.user
 
-import com.example.anifoxapi.jpa.User
+import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.repository.user.EmailRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value

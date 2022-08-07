@@ -1,6 +1,6 @@
 package com.example.anifoxapi.controller.auth
 
-import com.example.anifoxapi.jpa.User
+import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.model.responses.Greeting
 import com.example.anifoxapi.repository.user.PersonRepository
 import com.example.anifoxapi.repository.user.UserRepository

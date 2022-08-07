@@ -1,6 +1,6 @@
 package com.example.anifoxapi.repository.user
 
-import com.example.anifoxapi.jpa.Role
+import com.example.anifoxapi.jpa.user.Role
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.query.Param
 

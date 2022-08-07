@@ -1,6 +1,6 @@
 package com.example.anifoxapi.controller.auth
 
-import com.example.anifoxapi.jpa.User
+import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.jwt.JwtProvider
 import com.example.anifoxapi.model.responses.SuccessfulSigninResponse
 import com.example.anifoxapi.model.user.LoginUser

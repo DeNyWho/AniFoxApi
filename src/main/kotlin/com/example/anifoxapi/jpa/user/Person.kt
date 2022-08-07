@@ -1,4 +1,4 @@
-package com.example.anifoxapi.jpa
+package com.example.anifoxapi.jpa.user
 
 import javax.persistence.Column
 import javax.persistence.Entity

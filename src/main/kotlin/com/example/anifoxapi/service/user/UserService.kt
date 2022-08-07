@@ -1,7 +1,7 @@
 package com.example.anifoxapi.service.user
 
-import com.example.anifoxapi.jpa.User
-import com.example.anifoxapi.jpa.VerificationToken
+import com.example.anifoxapi.jpa.user.User
+import com.example.anifoxapi.jpa.user.VerificationToken
 import com.example.anifoxapi.repository.user.UserDetailsService
 import com.example.anifoxapi.repository.user.UserRepository
 import com.example.anifoxapi.repository.user.VerificationTokenRepository

@@ -1,11 +1,9 @@
 package com.example.anifoxapi.repository.user
 
-import com.example.anifoxapi.jpa.User
+import com.example.anifoxapi.jpa.user.User
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.stereotype.Repository
 import java.util.*
 import javax.transaction.Transactional
 

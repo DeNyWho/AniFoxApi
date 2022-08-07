@@ -1,4 +1,4 @@
-package com.example.anifoxapi.jpa
+package com.example.anifoxapi.jpa.user
 
 import lombok.NoArgsConstructor
 import javax.persistence.*

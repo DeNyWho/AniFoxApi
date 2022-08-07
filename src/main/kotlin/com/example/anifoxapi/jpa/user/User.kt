@@ -1,5 +1,6 @@
-package com.example.anifoxapi.jpa
+package com.example.anifoxapi.jpa.user
 
+import com.example.anifoxapi.jpa.user.Role
 import javax.persistence.*
 
 @Entity

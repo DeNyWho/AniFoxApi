@@ -1,8 +1,11 @@
 package com.example.anifoxapi.service.manga
 
-import com.example.anifoxapi.model.manga.*
+import com.example.anifoxapi.jpa.manga.Chapters
+import com.example.anifoxapi.jpa.manga.Genres
+import com.example.anifoxapi.jpa.manga.Info
+import com.example.anifoxapi.jpa.manga.Manga
+import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.repository.manga.MangaRepository
-import com.example.anifoxapi.util.Constants.BASE_MANGA_URL
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
 import it.skrape.core.document
@@ -21,8 +24,6 @@ import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.interactions.Actions
 import org.springframework.stereotype.Service
-import java.awt.Robot
-import java.awt.event.KeyEvent
 
 
 @Service
@@ -52,13 +53,13 @@ class MangaService: MangaRepository {
         return data
     }
 
-    override fun addPopularDataToDB(): List<NewManga> {
+    override fun addPopularDataToDB(): Manga {
         var maxId = 0
         var pageSize = 0
         var urls = mutableListOf<String>()
         var images = mutableListOf<String>()
         var titles = mutableListOf<String>()
-        var list = mutableListOf<NewManga>()
+        var list = Manga()
 
         skrape(HttpFetcher) {
             request {
@@ -76,7 +77,7 @@ class MangaService: MangaRepository {
                 }
             }
         }
-        for ( i in 1 until pageSize + 1 ) {
+        for ( i in 1 until 2 ) {
             println(i)
             skrape(HttpFetcher) {
                 request {
@@ -101,22 +102,101 @@ class MangaService: MangaRepository {
                 }
             }
         }
-        println("urls = ${urls.size}")
-        println("images = ${images.size}")
-        println("titles = ${titles.size}")
         for ( i in 0 until urls.size) {
-            list.add(
-                NewManga(
+            var description = ""
+            var genres =  Genres()
+            var chapters =  Chapters()
+            var info = Info()
+            var typesName =   listOf<String>()
+            var typesValue =  listOf<String>()
+            var types = ""
+            var link = urls[i]
+            skrape(HttpFetcher) {
+                request {
+                    url = link
+                }
+                response {
+                    // description
+                    try {
+                        document.div {
+                            withClass = "markdown-style.text-expandable-content"
+                            description = findFirst { return@findFirst text }
+                        }
+                    } catch (e: Exception) {
+                        description = "Not found"
+                    }
+                    //genres
+                    document.a {
+                        withClass = "tag.fw-medium"
+                        genres = Genres(title = findAll { return@findAll eachText })
+                    }
+                    //types
+                    document.div {
+                        withClass = "fs-2.text-muted.fw-medium.d-flex.align-items-center"
+                        types = findFirst { return@findFirst text }
+                    }
+
+                    // info
+                    document.div {
+                        withClass = "attr-name"
+                        typesName = findAll{ return@findAll eachText}
+                    }
+                    // info
+                    document.div {
+                        withClass = "attr-value"
+                        typesValue = findAll{ return@findAll eachText}
+                    }
+
+                    info = Info(
+                        name = typesName,
+                        value = typesValue
+                    )
+
+
+                }
+            }
+            skrape(HttpFetcher) {
+                request {
+                    url = link.replace("title","chapters")
+                }
+                response {
+                    //chapters
+                    document.a {
+                        try {
+                            withClass = "d-inline-flex.ms-2.fs-2.fw-medium.text-reset.min-w-0.flex-lg-grow-1"
+                            println(findAll { return@findAll eachHref })
+                            chapters = Chapters(
+                                title = findAll { return@findAll eachText },
+                                url = findAll { return@findAll eachHref }.map { "\"https://mangahub.ru/$it" }
+                            )
+                        } catch (e: Exception) {
+
+                            withClass = "text-muted.text-center.fw-medium.py-4"
+                            chapters = Chapters(title = emptyList(), url = emptyList())
+                        }
+                    }
+                }
+            }
+            list = (
+                Manga(
                     id = maxId,
                     title = titles[i],
                     image = images[i],
                     url = urls[i],
+                    description = description,
+                    genres = genres,
+                    types = types,
+                    info = info,
+                    chapters = chapters
                 )
             )
-            maxId -= 1
+
+            println(list)
+            maxId = maxId -  1
+
+
         }
-        println(list)
-        return list.toList()
+        return list
     }
 
     override fun manga(countPage: Int, status: Int?, countCard: Int?, sort: String?): List<MangaLightResponse>{
@@ -199,63 +279,63 @@ class MangaService: MangaRepository {
     }
 
 
-    override fun details(url: String): Manga {
-        val driver = setWebDriver(url)
-
-        val description = driver.findElement(By.xpath("//*[@class=\"media-description__text\"]")).text
-        val image = driver.findElement(By.xpath("//meta[@property='og:image']")).getAttribute("content")
-        val title = driver.findElement(By.xpath("//meta[@property='og:title']")).getAttribute("content")
-        val tags = driver.findElement(By.xpath("//*[@class=\"media-tags\"]")).text.replace("\n",",")
-        val listTitle = driver.findElements(By.xpath("//*[@class=\"media-info-list__item\"]"))
-        val listTitleReady = mutableListOf<String>()
-        val listTitleFinal = mutableListOf<String>()
-        val listValueFinal = mutableListOf<String>()
-        val result = mutableListOf<String>()
-
-        listTitle.forEach{
-            listTitleReady.add(it.text.replace("\n",", "))
-        }
-
-        for(i in 0 until listTitleReady.size){
-            result.addAll(listTitleReady[i].split(",").map { it.trim() })
-        }
-
-        for (i in 0 until result.size){
-            if (i % 2 == 0) {
-                listTitleFinal.add(result[i])
-            } else {
-                listValueFinal.add(result[i])
-            }
-        }
-        println(url)
-
-        driver.get("$url?section=chapters")
-        driver.navigate().to("$url?section=chapters")
-        driver.manage().window().maximize()
-
-        (driver as JavascriptExecutor)
-            .executeScript("window.scrollTo(0, document.body.scrollHeight)")
-        Thread.sleep(2000)
-        val chapterName = scrollSmooth(driver)
-
-        val chaptersTitle = mutableListOf<String>()
-        val chaptersUrl = mutableListOf<String>()
-
-        chapterName.forEach {
-            chaptersTitle.add(it.text)
-            chaptersUrl.add(it.findElement(By.tagName("a")).getAttribute("href"))
-        }
-        driver.quit()
-
-        return Manga(
-            title = title,
-            image = image,
-            description = description,
-            genres = tags.split(","),
-            list = MangaTags(title = listTitleFinal, value = listValueFinal),
-            chapters = MangaChapters(title = chaptersTitle.toList(), url = chaptersUrl.toList())
-        )
-    }
+//    override fun details(url: String): Manga {
+//        val driver = setWebDriver(url)
+//
+//        val description = driver.findElement(By.xpath("//*[@class=\"media-description__text\"]")).text
+//        val image = driver.findElement(By.xpath("//meta[@property='og:image']")).getAttribute("content")
+//        val title = driver.findElement(By.xpath("//meta[@property='og:title']")).getAttribute("content")
+//        val tags = driver.findElement(By.xpath("//*[@class=\"media-tags\"]")).text.replace("\n",",")
+//        val listTitle = driver.findElements(By.xpath("//*[@class=\"media-info-list__item\"]"))
+//        val listTitleReady = mutableListOf<String>()
+//        val listTitleFinal = mutableListOf<String>()
+//        val listValueFinal = mutableListOf<String>()
+//        val result = mutableListOf<String>()
+//
+//        listTitle.forEach{
+//            listTitleReady.add(it.text.replace("\n",", "))
+//        }
+//
+//        for(i in 0 until listTitleReady.size){
+//            result.addAll(listTitleReady[i].split(",").map { it.trim() })
+//        }
+//
+//        for (i in 0 until result.size){
+//            if (i % 2 == 0) {
+//                listTitleFinal.add(result[i])
+//            } else {
+//                listValueFinal.add(result[i])
+//            }
+//        }
+//        println(url)
+//
+//        driver.get("$url?section=chapters")
+//        driver.navigate().to("$url?section=chapters")
+//        driver.manage().window().maximize()
+//
+//        (driver as JavascriptExecutor)
+//            .executeScript("window.scrollTo(0, document.body.scrollHeight)")
+//        Thread.sleep(2000)
+//        val chapterName = scrollSmooth(driver)
+//
+//        val chaptersTitle = mutableListOf<String>()
+//        val chaptersUrl = mutableListOf<String>()
+//
+//        chapterName.forEach {
+//            chaptersTitle.add(it.text)
+//            chaptersUrl.add(it.findElement(By.tagName("a")).getAttribute("href"))
+//        }
+//        driver.quit()
+//
+//        return Manga(
+//            title = title,
+//            image = image,
+//            description = description,
+//            genres = tags.split(","),
+//            list = MangaTags(title = listTitleFinal, value = listValueFinal),
+//            chapters = MangaChapters(title = chaptersTitle.toList(), url = chaptersUrl.toList())
+//        )
+//    }
 
     override fun test(): List<String> {
         val driver = setWebDriver("https://mangalib.me/")
