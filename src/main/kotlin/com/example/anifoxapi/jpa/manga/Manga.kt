@@ -10,12 +10,14 @@ data class Manga(
     var title: String = "",
     var image: String = "",
     var url: String = "",
+    @Column(columnDefinition = "TEXT")
     var description: String = "",
-    @OneToOne
-    val genres: Genres = Genres(),
-    val types: String = "",
-    @OneToOne
+    @OneToOne(cascade = [CascadeType.ALL])
+    var genres: Genres = Genres(),
+    @OneToOne(cascade = [CascadeType.ALL])
+    var types: Types = Types(),
+    @OneToOne(cascade = [CascadeType.ALL])
     var info: Info = Info(),
-    @OneToOne
-    val chapters: Chapters = Chapters()
+    @OneToOne(cascade = [CascadeType.ALL])
+    var chapters: Chapters = Chapters()
 )

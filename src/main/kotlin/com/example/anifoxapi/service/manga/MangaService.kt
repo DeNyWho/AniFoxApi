@@ -1,11 +1,10 @@
 package com.example.anifoxapi.service.manga
 
-import com.example.anifoxapi.jpa.manga.Chapters
-import com.example.anifoxapi.jpa.manga.Genres
-import com.example.anifoxapi.jpa.manga.Info
-import com.example.anifoxapi.jpa.manga.Manga
+import com.example.anifoxapi.jpa.manga.*
 import com.example.anifoxapi.model.manga.MangaLightResponse
+import com.example.anifoxapi.repository.manga.MangaRep
 import com.example.anifoxapi.repository.manga.MangaRepository
+import com.example.anifoxapi.repository.user.UserRepository
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
 import it.skrape.core.document
@@ -23,11 +22,15 @@ import org.openqa.selenium.*
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.interactions.Actions
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 
 @Service
-class MangaService: MangaRepository {
+class MangaService: MangaRep {
+
+    @Autowired
+    lateinit var mangaRepository: MangaRepository
 
     override fun search(query: String): List<MangaLightResponse> {
         val driver = setWebDriver("https://mangalib.me/manga-list")
@@ -77,7 +80,7 @@ class MangaService: MangaRepository {
                 }
             }
         }
-        for ( i in 1 until 2 ) {
+        for ( i in 1 until pageSize + 1 ) {
             println(i)
             skrape(HttpFetcher) {
                 request {
@@ -177,6 +180,18 @@ class MangaService: MangaRepository {
                     }
                 }
             }
+
+            var tempList = types.split(" ")
+
+            val type = tempList[0]
+            val year = tempList[1]
+            val status = tempList[2]
+            val limitation = if (tempList.size == 4){
+                tempList[3]
+            } else {
+                ""
+            }
+
             list = (
                 Manga(
                     id = maxId,
@@ -185,11 +200,19 @@ class MangaService: MangaRepository {
                     url = urls[i],
                     description = description,
                     genres = genres,
-                    types = types,
+                    types = Types(
+                        type = type,
+                        year = year,
+                        status = status,
+                        limitation = limitation
+                    ),
                     info = info,
                     chapters = chapters
                 )
             )
+            mangaRepository.save(list)
+
+
 
             println(list)
             maxId = maxId -  1

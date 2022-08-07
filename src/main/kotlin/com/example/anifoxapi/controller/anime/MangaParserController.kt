@@ -72,22 +72,21 @@ class MangaParserController {
 //        }
 //    }
 
-    @GetMapping("tester")
-    @Operation(summary = "Get tester of manga")
-    fun tester(): ServiceResponse<Manga> {
+    @GetMapping("parser")
+    @Operation(summary = "Parse manga and add data to postgreSQL")
+    fun parseManga(): ServiceResponse<Long> {
         return try {
             val start = System.currentTimeMillis()
-            val data = service.addPopularDataToDB()
+            service.addPopularDataToDB()
 
             val finish = System.currentTimeMillis()
             val elapsed = finish - start
             println("Время выполнения $elapsed")
-            return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
+            return ServiceResponse(data = listOf(elapsed), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
-//        } catch (e: Exception) {
-//            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
-//        }
+        } catch (e: Exception) {
+            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
         }
     }
 
