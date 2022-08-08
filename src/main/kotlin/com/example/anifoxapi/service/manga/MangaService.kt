@@ -4,7 +4,6 @@ import com.example.anifoxapi.jpa.manga.*
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.repository.manga.MangaRep
 import com.example.anifoxapi.repository.manga.MangaRepository
-import com.example.anifoxapi.repository.user.UserRepository
 import com.example.anifoxapi.util.OS
 import com.example.anifoxapi.util.getOS
 import it.skrape.core.document
@@ -220,6 +219,14 @@ class MangaService: MangaRep {
 
         }
         return list
+    }
+
+    override fun getMangaFromDB(id: Int): Manga {
+        try {
+            return mangaRepository.findById(id).get()
+        } catch (e: Exception) {
+            return Manga()
+        }
     }
 
     override fun manga(countPage: Int, status: Int?, countCard: Int?, sort: String?): List<MangaLightResponse>{

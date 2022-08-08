@@ -8,9 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @Tag(name = "MangaApi", description = "All about manga")
@@ -55,22 +53,21 @@ class MangaParserController {
 //        }
 //    }
 
-//    @GetMapping("detail")
-//    @Operation(summary = "Get detail of manga")
-//    fun getDetailOfManga(
-//        @RequestParam url: String
-//    ): ServiceResponse<Manga> {
-//        return try {
-//            val data = service.details(url)
-//
-//            return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
-//        } catch (e: ChangeSetPersister.NotFoundException) {
-//            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
-////        } catch (e: Exception) {
-////            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
-////        }
-//        }
-//    }
+    @GetMapping("{id}")
+    @Operation(summary = "Get detail of manga")
+    fun getMangaById(
+        @PathVariable id: Int
+    ): ServiceResponse<Manga> {
+        return try {
+            val data = service.getMangaFromDB(id)
+
+            return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        } catch (e: Exception) {
+            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+        }
+    }
 
     @GetMapping("parser")
     @Operation(summary = "Parse manga and add data to postgreSQL")
