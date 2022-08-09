@@ -1,10 +1,15 @@
 package com.example.anifoxapi.repository.manga
 
-import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.jpa.manga.Manga
+import com.example.anifoxapi.model.manga.MangaLightResponse
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.stereotype.Repository
 import java.util.*
+
 
 @Repository
 interface MangaRep {
@@ -17,12 +22,14 @@ interface MangaRep {
     fun test(): List<String>
     fun addPopularDataToDB(): Manga
     fun getMangaFromDB(id: Int): Manga
+    fun getPopularManga(countCard: Int, status: String?, page: Int): List<Manga>
 }
 
-@Repository
-interface MangaRepository: JpaRepository<Manga, Long> {
 
-    fun findById(id: Int): Optional<Manga>
+@Repository
+interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
+
+    override fun findById(id: Int): Optional<Manga>
 
 
 }

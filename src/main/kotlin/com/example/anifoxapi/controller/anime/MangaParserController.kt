@@ -69,6 +69,24 @@ class MangaParserController {
         }
     }
 
+    @GetMapping("popular")
+    @Operation(summary = "Get popular manga")
+    fun getPopularManga(
+        @RequestParam page: Int,
+        @RequestParam countCard: Int,
+        status: String?,
+    ): ServiceResponse<List<Manga>> {
+        return try {
+            val data = service.getPopularManga(countCard,status,page)
+
+            return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        } catch (e: Exception) {
+            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+        }
+    }
+
     @GetMapping("parser")
     @Operation(summary = "Parse manga and add data to postgreSQL")
     fun parseManga(): ServiceResponse<Long> {

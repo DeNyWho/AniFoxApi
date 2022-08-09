@@ -22,7 +22,12 @@ import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.interactions.Actions
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import javax.persistence.Query
 
 
 @Service
@@ -79,7 +84,7 @@ class MangaService: MangaRep {
                 }
             }
         }
-        for ( i in 1 until pageSize + 1 ) {
+        for ( i in 1 until 3) {
             println(i)
             skrape(HttpFetcher) {
                 request {
@@ -113,6 +118,8 @@ class MangaService: MangaRep {
             var typesValue =  listOf<String>()
             var types = ""
             var link = urls[i]
+            var rate = ""
+            var rateCount = ""
             skrape(HttpFetcher) {
                 request {
                     url = link
@@ -147,6 +154,19 @@ class MangaService: MangaRep {
                     document.div {
                         withClass = "attr-value"
                         typesValue = findAll{ return@findAll eachText}
+                    }
+
+                    //rate
+                    document.span {
+                        withClass = "fw-bold.fs-2.fs-lg-5"
+                        rate = findFirst{ return@findFirst text }
+                        println(rate)
+                    }
+
+                    //rate count
+                    document.span {
+                        withClass = "fw-normal.fs-0.text-muted"
+                        rateCount = findFirst { return@findFirst text }
                     }
 
                     info = Info(
@@ -206,7 +226,10 @@ class MangaService: MangaRep {
                         limitation = limitation
                     ),
                     info = info,
-                    chapters = chapters
+                    chapters = chapters,
+                    chaptersCount = chapters.url.size,
+                    rate = rate.toDouble(),
+                    countRate = rateCount.toInt(),
                 )
             )
             mangaRepository.save(list)
@@ -221,11 +244,22 @@ class MangaService: MangaRep {
         return list
     }
 
+    override fun getPopularManga(countCard: Int, status: String?, page: Int): List<Manga> {
+        val sort = Sort.by(
+            Sort.Order(Sort.Direction.DESC, "rate"),
+            Sort.Order(Sort.Direction.DESC, "countRate")
+        )
+        val pageable: Pageable = PageRequest.of(page, countCard, sort)
+        val statePage: Page<Manga> = mangaRepository.findAll(pageable)
+
+        return statePage.content
+    }
+
     override fun getMangaFromDB(id: Int): Manga {
-        try {
-            return mangaRepository.findById(id).get()
+        return try {
+            mangaRepository.findById(id).get()
         } catch (e: Exception) {
-            return Manga()
+            Manga()
         }
     }
 

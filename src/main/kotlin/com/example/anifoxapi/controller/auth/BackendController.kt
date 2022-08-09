@@ -5,6 +5,7 @@ import com.example.anifoxapi.model.responses.Greeting
 import com.example.anifoxapi.repository.user.PersonRepository
 import com.example.anifoxapi.repository.user.UserRepository
 import com.example.anifoxapi.service.user.EmailService
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.*
 import java.util.concurrent.atomic.AtomicLong
 
 @RestController
-@RequestMapping("/api2")
+@Tag(name = "BackendAPI", description = "!!!It works in test mode!!!")
+@RequestMapping("/api2/")
 class BackendController() {
 
     @Value("\${spring.mail.username}")

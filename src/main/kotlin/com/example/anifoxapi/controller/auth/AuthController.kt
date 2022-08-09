@@ -12,6 +12,7 @@ import com.example.anifoxapi.service.user.UserService
 import com.example.anifoxapi.service.user.UserService.Companion.TOKEN_EXPIRED
 import com.example.anifoxapi.service.user.UserService.Companion.TOKEN_INVALID
 import com.example.anifoxapi.service.user.UserService.Companion.TOKEN_VALID
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -33,6 +34,7 @@ import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
 
 @RestController
+@Tag(name = "Authorization API", description = "All about user authorization")
 @RequestMapping("/api2/auth/")
 class AuthController {
 
