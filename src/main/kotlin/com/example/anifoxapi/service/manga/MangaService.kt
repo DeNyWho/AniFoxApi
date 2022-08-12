@@ -1,7 +1,9 @@
 package com.example.anifoxapi.service.manga
 
 import com.example.anifoxapi.jpa.manga.*
+import com.example.anifoxapi.model.manga.MangaLightPopularResponse
 import com.example.anifoxapi.model.manga.MangaLightResponse
+import com.example.anifoxapi.model.manga.TestMangaResponse
 import com.example.anifoxapi.repository.manga.MangaRep
 import com.example.anifoxapi.repository.manga.MangaRepository
 import com.example.anifoxapi.util.OS
@@ -34,17 +36,50 @@ class MangaService: MangaRep {
     @Autowired
     lateinit var mangaRepository: MangaRepository
 
-    override fun search(query: String): List<Manga> {
+    override fun findByGenre(genre: String, countCard: Int, page: Int,): List<TestMangaResponse>{
+        val pageable: Pageable = PageRequest.of(page, countCard)
+        val statePage: Page<Manga> = mangaRepository.findByGenres(pageable, genre)
+        val light = mutableListOf<TestMangaResponse>()
 
-        return mangaRepository.findByTitle(query)
+        statePage.content.forEach {
+            light.add(
+                TestMangaResponse(
+                    id = it.id,
+                    title = it.title,
+                    image = it.image,
+                    url = it.url,
+                    genre = it.genres
+                )
+            )
+        }
+        return light.toList()
+    }
+
+    override fun search(query: String): List<MangaLightResponse> {
+
+        val light = mutableListOf<MangaLightResponse>()
+        val manga = mangaRepository.findByTitle(query)
+
+        manga.forEach {
+            light.add(
+                MangaLightResponse(
+                    id = it.id,
+                    title = it.title,
+                    image = it.image,
+                    url = it.url
+                )
+            )
+        }
+
+        return light.toList()
     }
 
     override fun addPopularDataToDB(): Manga {
         var maxId = 0
         var pageSize = 0
-        var urls = mutableListOf<String>()
-        var images = mutableListOf<String>()
-        var titles = mutableListOf<String>()
+        val urls = mutableListOf<String>()
+        val images = mutableListOf<String>()
+        val titles = mutableListOf<String>()
         var list = Manga()
 
         skrape(HttpFetcher) {
@@ -63,7 +98,7 @@ class MangaService: MangaRep {
                 }
             }
         }
-        for ( i in 1 until 3) {
+        for ( i in 1 until 7) {
             println(i)
             skrape(HttpFetcher) {
                 request {
@@ -99,6 +134,9 @@ class MangaService: MangaRep {
             var link = urls[i]
             var rate = ""
             var rateCount = ""
+            var views = ""
+
+
             skrape(HttpFetcher) {
                 request {
                     url = link
@@ -116,8 +154,15 @@ class MangaService: MangaRep {
                     //genres
                     document.a {
                         withClass = "tag.fw-medium"
-                        genres = Genres(title = findAll { return@findAll eachText })
+                        genres = Genres(title = findAll { return@findAll eachText }.map { it.replace("#","") })
                     }
+
+                    // views
+                    document.span {
+                        withClass = "ms-2.fw-bold.fs-2.fs-md-5"
+                        views = findFirst { return@findFirst text }.replace("К","0").replace(".","")
+                    }
+
                     //types
                     document.div {
                         withClass = "fs-2.text-muted.fw-medium.d-flex.align-items-center"
@@ -179,11 +224,19 @@ class MangaService: MangaRep {
                 }
             }
 
-            var tempList = types.split(" ")
-
+            val tempList = types.split(" ")
+            println(link)
+            println(tempList)
             val type = tempList[0]
-            val year = tempList[1]
-            val status = tempList[2]
+            var yearDK = 0
+            val year = try {
+                tempList[1].toInt()
+                tempList[1].toString()
+            } catch (e: Exception) {
+                yearDK = 1
+                ""
+            }
+            val status = if (yearDK == 0 ) tempList[2] else tempList[1]
             val limitation = if (tempList.size == 4){
                 tempList[3]
             } else {
@@ -204,6 +257,7 @@ class MangaService: MangaRep {
                         status = status,
                         limitation = limitation
                     ),
+                    views = views.toInt(),
                     info = info,
                     chapters = chapters,
                     chaptersCount = chapters.url.size,
@@ -223,26 +277,112 @@ class MangaService: MangaRep {
         return list
     }
 
-    override fun getPopularManga(countCard: Int, status: String?, page: Int): List<Manga> {
-        if (status == null) {
-            val sort = Sort.by(
-                Sort.Order(Sort.Direction.DESC, "rate"),
-                Sort.Order(Sort.Direction.DESC, "countRate")
-            )
-            val pageable: Pageable = PageRequest.of(page, countCard, sort)
-            val statePage: Page<Manga> = mangaRepository.findAll(pageable)
-            return statePage.content
-        } else {
-            val sort = Sort.by(
-                Sort.Order(Sort.Direction.DESC, "rate"),
-                Sort.Order(Sort.Direction.DESC, "countRate")
-            )
-            val pageable: Pageable = PageRequest.of(page, countCard, sort)
-            val statePage: Page<Manga> = mangaRepository.findAllByPopularWithStatus(pageable, status)
-            return statePage.content
+    override fun getManga(countCard: Int, status: String?, page: Int, order: String?): List<MangaLightResponse> {
+        if (order == "popular") {
+            if (status == null) {
+                val sort = Sort.by(
+                    Sort.Order(Sort.Direction.DESC, "rate"),
+                    Sort.Order(Sort.Direction.DESC, "countRate")
+                )
+                val pageable: Pageable = PageRequest.of(page, countCard, sort)
+                val statePage: Page<Manga> = mangaRepository.findAll(pageable)
+                val light = mutableListOf<MangaLightResponse>()
 
+                statePage.content.forEach {
+                    light.add(
+                        MangaLightResponse(
+                            id = it.id,
+                            title = it.title,
+                            image = it.image,
+                            url = it.url,
+                        )
+                    )
+                }
+                return light
+            } else {
+                val sort = Sort.by(
+                    Sort.Order(Sort.Direction.DESC, "rate"),
+                    Sort.Order(Sort.Direction.DESC, "countRate")
+                )
+                val pageable: Pageable = PageRequest.of(page, countCard, sort)
+                val statePage: Page<Manga> = mangaRepository.findAllByPopularWithStatus(pageable, status)
+                val light = mutableListOf<MangaLightResponse>()
+
+                statePage.content.forEach {
+                    light.add(
+                        MangaLightResponse(
+                            id = it.id,
+                            title = it.title,
+                            image = it.image,
+                            url = it.url,
+                        )
+                    )
+                }
+                return light
+            }
+        }
+        else if(order == "views"){
+            val pageable: Pageable = PageRequest.of(page, countCard)
+            val statePage: Page<Manga> = mangaRepository.findByReads(pageable)
+            val light = mutableListOf<MangaLightResponse>()
+
+            statePage.content.forEach {
+                light.add(
+                    MangaLightResponse(
+                        id = it.id,
+                        title = it.title,
+                        image = it.image,
+                        url = it.url,
+                    )
+                )
+            }
+            return light
+        }
+        else {
+            if (status == null) {
+                val sort = Sort.by(
+                    Sort.Order(Sort.Direction.DESC, "rate"),
+                    Sort.Order(Sort.Direction.DESC, "countRate")
+                )
+                val pageable: Pageable = PageRequest.of(page, countCard, sort)
+                val statePage: Page<Manga> = mangaRepository.findAll(pageable)
+                val light = mutableListOf<MangaLightResponse>()
+
+                statePage.content.forEach {
+                    light.add(
+                        MangaLightResponse(
+                            id = it.id,
+                            title = it.title,
+                            image = it.image,
+                            url = it.url
+                        )
+                    )
+                }
+                return light
+            } else {
+                val sort = Sort.by(
+                    Sort.Order(Sort.Direction.DESC, "rate"),
+                    Sort.Order(Sort.Direction.DESC, "countRate")
+                )
+                val pageable: Pageable = PageRequest.of(page, countCard, sort)
+                val statePage: Page<Manga> = mangaRepository.findAllByPopularWithStatus(pageable, status)
+                val light = mutableListOf<MangaLightResponse>()
+
+                statePage.content.forEach {
+                    light.add(
+                        MangaLightResponse(
+                            id = it.id,
+                            title = it.title,
+                            image = it.image,
+                            url = it.url,
+                        )
+                    )
+                }
+                return light
+            }
         }
     }
+
 
     override fun getMangaFromDB(id: Int): Manga {
         return try {
@@ -251,7 +391,6 @@ class MangaService: MangaRep {
             Manga()
         }
     }
-
 
     override fun test(): List<String> {
         val driver = setWebDriver("https://mangalib.me/")
@@ -280,7 +419,6 @@ class MangaService: MangaRep {
         driver.quit()
         return pages.toList()
     }
-
 
     fun setWebDriver(url: String): WebDriver {
         val pathDriver: String = when (getOS()) {

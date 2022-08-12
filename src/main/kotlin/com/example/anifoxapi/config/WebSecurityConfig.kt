@@ -85,6 +85,6 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Throws(Exception::class)
     override fun configure(web: WebSecurity) {
-        web.ignoring().antMatchers("/api2/signin", "/api2/signup", "/api2/registrationConfirm", "/api2/manga/**", "/swagger-ui/index.html#/")
+        web.ignoring().antMatchers("/api2/signin", "/api2/signup", "/api2/registrationConfirm", "/api2/manga/**", "/api2/manga/popular", "/swagger-ui/index.html#/")
     }
 }

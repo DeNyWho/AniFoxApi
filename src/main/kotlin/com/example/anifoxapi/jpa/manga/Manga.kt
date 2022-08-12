@@ -21,6 +21,7 @@ data class Manga(
     @OneToOne(cascade = [CascadeType.ALL])
     var chapters: Chapters = Chapters(),
     val chaptersCount: Int = 0,
+    var views: Int = 0,
     var rate: Double = 0.0,
     @Column(name = "count_rate")
     var countRate: Int = 0

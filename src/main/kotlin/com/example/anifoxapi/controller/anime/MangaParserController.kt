@@ -1,7 +1,9 @@
 package com.example.anifoxapi.controller.anime
 
 import com.example.anifoxapi.jpa.manga.Manga
+import com.example.anifoxapi.model.manga.MangaLightPopularResponse
 import com.example.anifoxapi.model.manga.MangaLightResponse
+import com.example.anifoxapi.model.manga.TestMangaResponse
 import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.service.manga.MangaService
 import io.swagger.v3.oas.annotations.Operation
@@ -23,15 +25,31 @@ class MangaParserController {
     @Operation(summary = "Search manga")
     fun search(
         @RequestParam search: String,
-    ): ServiceResponse<Manga> {
+    ): ServiceResponse<MangaLightResponse> {
         return try {
             val data = service.search(query = search)
-            println("data = $data")
+
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
         } catch (e: Exception) {
             ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+        }
+    }
+
+    @GetMapping("findByGenre")
+    @Operation(summary = "Mangas by genres")
+    fun findByGenre(
+        @RequestParam genre: String,
+        @RequestParam page: Int,
+        @RequestParam countCard: Int
+    ): ServiceResponse<TestMangaResponse> {
+        return try {
+            val data = service.findByGenre(genre, countCard, page)
+
+            return ServiceResponse(data = data, status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
         }
     }
 
@@ -51,21 +69,25 @@ class MangaParserController {
         }
     }
 
-    @GetMapping("popular")
-    @Operation(summary = "Get popular manga")
-    fun getPopularManga(
+    @GetMapping("")
+    @Operation(summary = "Get manga")
+    fun getManga(
         @RequestParam page: Int,
         @RequestParam countCard: Int,
         status: String?,
-    ): ServiceResponse<List<Manga>> {
+        order: String?,
+    ): ServiceResponse<MangaLightResponse> {
         return try {
-            val data = service.getPopularManga(countCard,status,page)
+            val data = service.getManga(
+                countCard = countCard,
+                status = status,
+                page = page,
+                order = order
+            )
 
-            return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
+            return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
-        } catch (e: Exception) {
-            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
         }
     }
 
@@ -82,6 +104,7 @@ class MangaParserController {
             return ServiceResponse(data = listOf(elapsed), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+
         } catch (e: Exception) {
             ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
         }

@@ -9,6 +9,7 @@ data class Genres (
     @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long? = 0,
 
+    @Column(columnDefinition = "TEXT")
     @ElementCollection
     val title: List<String> = ArrayList<String>()
 )
