@@ -1,7 +1,6 @@
 package com.example.anifoxapi.controller.anime
 
 import com.example.anifoxapi.jpa.manga.Manga
-import com.example.anifoxapi.model.manga.MangaLightPopularResponse
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.manga.TestMangaResponse
 import com.example.anifoxapi.model.responses.ServiceResponse
@@ -37,22 +36,6 @@ class MangaParserController {
         }
     }
 
-    @GetMapping("findByGenre")
-    @Operation(summary = "Mangas by genres")
-    fun findByGenre(
-        @RequestParam genre: String,
-        @RequestParam page: Int,
-        @RequestParam countCard: Int
-    ): ServiceResponse<TestMangaResponse> {
-        return try {
-            val data = service.findByGenre(genre, countCard, page)
-
-            return ServiceResponse(data = data, status = HttpStatus.OK)
-        } catch (e: ChangeSetPersister.NotFoundException) {
-            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
-        }
-    }
-
     @GetMapping("{id}")
     @Operation(summary = "Get detail of manga")
     fun getMangaById(
@@ -76,13 +59,15 @@ class MangaParserController {
         @RequestParam countCard: Int,
         status: String?,
         order: String?,
+        genre: String?
     ): ServiceResponse<MangaLightResponse> {
         return try {
             val data = service.getManga(
                 countCard = countCard,
                 status = status,
                 page = page,
-                order = order
+                order = order,
+                genre = genre
             )
 
             return ServiceResponse(data = data, status = HttpStatus.OK)

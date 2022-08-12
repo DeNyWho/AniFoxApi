@@ -1,7 +1,6 @@
 package com.example.anifoxapi.service.manga
 
 import com.example.anifoxapi.jpa.manga.*
-import com.example.anifoxapi.model.manga.MangaLightPopularResponse
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.manga.TestMangaResponse
 import com.example.anifoxapi.repository.manga.MangaRep
@@ -36,24 +35,6 @@ class MangaService: MangaRep {
     @Autowired
     lateinit var mangaRepository: MangaRepository
 
-    override fun findByGenre(genre: String, countCard: Int, page: Int,): List<TestMangaResponse>{
-        val pageable: Pageable = PageRequest.of(page, countCard)
-        val statePage: Page<Manga> = mangaRepository.findByGenres(pageable, genre)
-        val light = mutableListOf<TestMangaResponse>()
-
-        statePage.content.forEach {
-            light.add(
-                TestMangaResponse(
-                    id = it.id,
-                    title = it.title,
-                    image = it.image,
-                    url = it.url,
-                    genre = it.genres
-                )
-            )
-        }
-        return light.toList()
-    }
 
     override fun search(query: String): List<MangaLightResponse> {
 
@@ -98,6 +79,7 @@ class MangaService: MangaRep {
                 }
             }
         }
+
         for ( i in 1 until pageSize) {
             println(i)
             skrape(HttpFetcher) {
@@ -231,7 +213,7 @@ class MangaService: MangaRep {
             var yearDK = 0
             val year = try {
                 tempList[1].toInt()
-                tempList[1].toString()
+                tempList[1]
             } catch (e: Exception) {
                 yearDK = 1
                 ""
@@ -277,7 +259,25 @@ class MangaService: MangaRep {
         return list
     }
 
-    override fun getManga(countCard: Int, status: String?, page: Int, order: String?): List<MangaLightResponse> {
+    override fun getManga(countCard: Int, status: String?, page: Int, order: String?, genre: String?): List<MangaLightResponse> {
+        if(genre != null){
+            val pageable: Pageable = PageRequest.of(page, countCard)
+            val statePage: Page<Manga> = mangaRepository.findByGenres(pageable, genre)
+            val light = mutableListOf<MangaLightResponse>()
+
+            statePage.content.forEach {
+                light.add(
+                    MangaLightResponse(
+                        id = it.id,
+                        title = it.title,
+                        image = it.image,
+                        url = it.url
+                    )
+                )
+            }
+            return light.toList()
+        }
+
         if (order == "popular") {
             if (status == null) {
                 val sort = Sort.by(
@@ -381,6 +381,7 @@ class MangaService: MangaRep {
                 return light
             }
         }
+
     }
 
 

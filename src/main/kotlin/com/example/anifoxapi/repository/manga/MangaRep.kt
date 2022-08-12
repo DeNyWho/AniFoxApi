@@ -1,13 +1,10 @@
 package com.example.anifoxapi.repository.manga
 
 import com.example.anifoxapi.jpa.manga.Manga
-import com.example.anifoxapi.model.manga.MangaLightPopularResponse
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.manga.TestMangaResponse
-import org.hibernate.annotations.Parameter
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
@@ -25,8 +22,7 @@ interface MangaRep {
     fun test(): List<String>
     fun addPopularDataToDB(): Manga
     fun getMangaFromDB(id: Int): Manga
-    fun getManga(countCard: Int, status: String?, page: Int, order: String?): List<MangaLightResponse>
-    fun findByGenre(genre: String, countCard: Int, page: Int): List<TestMangaResponse>
+    fun getManga(countCard: Int, status: String?, page: Int, order: String?, genre: String?): List<MangaLightResponse>
 }
 
 
