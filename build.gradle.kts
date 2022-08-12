@@ -9,6 +9,13 @@ plugins {
     kotlin("plugin.spring") version "1.6.21"
 }
 
+springBoot {
+    mainClass.set("com.example.anifoxapi.AniFoxApiApplicationKt")
+}
+tasks.getByName<Jar>("jar") {
+    enabled = false
+}
+
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
@@ -78,14 +85,6 @@ dependencies {
 //        mavenBom("de.codecentric:spring-boot-admin-dependencies:${property("springBootAdminVersion")}")
 //    }
 //}
-tasks.withType<Jar>() {
-    manifest {
-        attributes["Main-Class"] = "AniFoxApi-0.0.1-SNAPSHOT-plain.jar"
-    }
-    configurations["compileClasspath"].forEach { file: File ->
-        from(zipTree(file.absoluteFile))
-    }
-}
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
