@@ -78,6 +78,14 @@ dependencies {
 //        mavenBom("de.codecentric:spring-boot-admin-dependencies:${property("springBootAdminVersion")}")
 //    }
 //}
+tasks.withType<Jar>() {
+    manifest {
+        attributes["Main-Class"] = "AniFoxApi-0.0.1-SNAPSHOT-plain.jar"
+    }
+    configurations["compileClasspath"].forEach { file: File ->
+        from(zipTree(file.absoluteFile))
+    }
+}
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
