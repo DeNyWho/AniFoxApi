@@ -98,7 +98,7 @@ class MangaService: MangaRep {
                 }
             }
         }
-        for ( i in 1 until 7) {
+        for ( i in 1 until pageSize) {
             println(i)
             skrape(HttpFetcher) {
                 request {
