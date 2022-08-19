@@ -32,6 +32,13 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
     @Query(value = "Select u From Manga u where :title member of u.genres.title")
     fun findByGenres(pageable: Pageable, @Param("title") genre: String): Page<Manga>
 
+    @Query(value = "Select u From Manga u where :title member of u.genres.title")
+    fun findByGenresAndOrderPopular(pageable: Pageable, @Param("title") genre: String): Page<Manga>
+
+
+    @Query(value = "Select u From Manga u where u.types.status = :status")
+    fun findByStatus(pageable: Pageable, @Param("status") status: String): Page<Manga>
+
     override fun findById(id: Int): Optional<Manga>
 
     @Query(value = "SELECT u FROM Manga u where u.types.status = :status")
@@ -39,8 +46,6 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
 
     @Query(value = "SELECT u FROM Manga u order by u.views desc")
     fun findByReads(pageable: Pageable): Page<Manga>
-
-
 
     @Query(value = "SELECT u FROM Manga u where u.title LIKE %?1%")
     fun findByTitle(@Param("title") title: String): List<Manga>

@@ -47,7 +47,10 @@ class MangaService: MangaRep {
                     id = it.id,
                     title = it.title,
                     image = it.image,
-                    url = it.url
+                    url = it.url,
+                    rate = it.rate,
+                    countRate = it.countRate,
+                    description = it.description
                 )
             )
         }
@@ -65,7 +68,7 @@ class MangaService: MangaRep {
 
         skrape(HttpFetcher) {
             request {
-                url = "https://mangahub.ru/explore/genres-is-nor-erotica/sort-is-date?page=1"
+                url = "https://mangahub.ru/explore/type-is-nor-comix/genres-is-nor-erotica/sort-is-date?page=1"
             }
             response {
                 document.span {
@@ -80,11 +83,11 @@ class MangaService: MangaRep {
             }
         }
 
-        for ( i in 1 until pageSize) {
+        for ( i in 1 until 7) {
             println(i)
             skrape(HttpFetcher) {
                 request {
-                    url = "https://mangahub.ru/explore/genres-is-nor-erotica/sort-is-date?page=$i"
+                    url = "https://mangahub.ru/explore/type-is-nor-comix/genres-is-nor-erotica/sort-is-date?page=$i"
                 }
                 response {
                     //title
@@ -260,128 +263,55 @@ class MangaService: MangaRep {
     }
 
     override fun getManga(countCard: Int, status: String?, page: Int, order: String?, genre: String?): List<MangaLightResponse> {
-        if(genre != null){
-            val pageable: Pageable = PageRequest.of(page, countCard)
-            val statePage: Page<Manga> = mangaRepository.findByGenres(pageable, genre)
-            val light = mutableListOf<MangaLightResponse>()
+        return sortQuery(
+            order = order,
+            genre = genre,
+            status = status,
+            page = page,
+            countCard = countCard
+        )
 
-            statePage.content.forEach {
-                light.add(
-                    MangaLightResponse(
-                        id = it.id,
-                        title = it.title,
-                        image = it.image,
-                        url = it.url
-                    )
-                )
-            }
-            return light.toList()
+    }
+
+    fun sortQuery(order: String?, genre: String?, status: String?, page: Int, countCard: Int): List<MangaLightResponse> {
+        val sort = when(order){
+            "popular" -> Sort.by(
+                Sort.Order(Sort.Direction.DESC, "rate"),
+                Sort.Order(Sort.Direction.DESC, "countRate")
+            )
+            "views" -> Sort.by(
+                Sort.Order(Sort.Direction.DESC, "countViews")
+            )
+            else -> null
         }
 
-        if (order == "popular") {
-            if (status == null) {
-                val sort = Sort.by(
-                    Sort.Order(Sort.Direction.DESC, "rate"),
-                    Sort.Order(Sort.Direction.DESC, "countRate")
-                )
-                val pageable: Pageable = PageRequest.of(page, countCard, sort)
-                val statePage: Page<Manga> = mangaRepository.findAll(pageable)
-                val light = mutableListOf<MangaLightResponse>()
-
-                statePage.content.forEach {
-                    light.add(
-                        MangaLightResponse(
-                            id = it.id,
-                            title = it.title,
-                            image = it.image,
-                            url = it.url,
-                        )
-                    )
-                }
-                return light
-            } else {
-                val sort = Sort.by(
-                    Sort.Order(Sort.Direction.DESC, "rate"),
-                    Sort.Order(Sort.Direction.DESC, "countRate")
-                )
-                val pageable: Pageable = PageRequest.of(page, countCard, sort)
-                val statePage: Page<Manga> = mangaRepository.findAllByPopularWithStatus(pageable, status)
-                val light = mutableListOf<MangaLightResponse>()
-
-                statePage.content.forEach {
-                    light.add(
-                        MangaLightResponse(
-                            id = it.id,
-                            title = it.title,
-                            image = it.image,
-                            url = it.url,
-                        )
-                    )
-                }
-                return light
-            }
+        val pageable: Pageable = if(sort != null ) PageRequest.of(page, countCard, sort) else PageRequest.of(page, countCard)
+        val statePage: Page<Manga> = if(status != null && genre != null){
+            mangaRepository.findAll(pageable)
+        } else if (status == null && genre != null){
+            mangaRepository.findByGenres(pageable, genre)
+        } else if (status != null) {
+            mangaRepository.findByStatus(pageable, status)
+        } else {
+            mangaRepository.findAll(pageable)
         }
-        else if(order == "views"){
-            val pageable: Pageable = PageRequest.of(page, countCard)
-            val statePage: Page<Manga> = mangaRepository.findByReads(pageable)
-            val light = mutableListOf<MangaLightResponse>()
+        val light = mutableListOf<MangaLightResponse>()
 
-            statePage.content.forEach {
-                light.add(
-                    MangaLightResponse(
-                        id = it.id,
-                        title = it.title,
-                        image = it.image,
-                        url = it.url,
-                    )
+        statePage.content.forEach {
+            light.add(
+                MangaLightResponse(
+                    id = it.id,
+                    title = it.title,
+                    image = it.image,
+                    url = it.url,
+                    rate = it.rate,
+                    countRate = it.countRate,
+                    description = it.description,
+                    countViews = it.views
                 )
-            }
-            return light
+            )
         }
-        else {
-            if (status == null) {
-                val sort = Sort.by(
-                    Sort.Order(Sort.Direction.DESC, "rate"),
-                    Sort.Order(Sort.Direction.DESC, "countRate")
-                )
-                val pageable: Pageable = PageRequest.of(page, countCard, sort)
-                val statePage: Page<Manga> = mangaRepository.findAll(pageable)
-                val light = mutableListOf<MangaLightResponse>()
-
-                statePage.content.forEach {
-                    light.add(
-                        MangaLightResponse(
-                            id = it.id,
-                            title = it.title,
-                            image = it.image,
-                            url = it.url
-                        )
-                    )
-                }
-                return light
-            } else {
-                val sort = Sort.by(
-                    Sort.Order(Sort.Direction.DESC, "rate"),
-                    Sort.Order(Sort.Direction.DESC, "countRate")
-                )
-                val pageable: Pageable = PageRequest.of(page, countCard, sort)
-                val statePage: Page<Manga> = mangaRepository.findAllByPopularWithStatus(pageable, status)
-                val light = mutableListOf<MangaLightResponse>()
-
-                statePage.content.forEach {
-                    light.add(
-                        MangaLightResponse(
-                            id = it.id,
-                            title = it.title,
-                            image = it.image,
-                            url = it.url,
-                        )
-                    )
-                }
-                return light
-            }
-        }
-
+        return light
     }
 
 
