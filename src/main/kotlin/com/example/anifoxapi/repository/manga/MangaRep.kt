@@ -44,6 +44,9 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
     @Query(value = "SELECT u FROM Manga u where u.types.status = :status")
     fun findAllByPopularWithStatus(pageable: Pageable, @Param("status") status: String): Page<Manga>
 
+    @Query(nativeQuery = true, value = "SELECT * FROM Manga order by random()")
+    fun findByRandom(pageable: Pageable): Page<Manga>
+
     @Query(value = "SELECT u FROM Manga u order by u.views desc")
     fun findByReads(pageable: Pageable): Page<Manga>
 

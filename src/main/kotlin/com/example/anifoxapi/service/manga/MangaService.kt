@@ -280,7 +280,7 @@ class MangaService: MangaRep {
                 Sort.Order(Sort.Direction.DESC, "countRate")
             )
             "views" -> Sort.by(
-                Sort.Order(Sort.Direction.DESC, "countViews")
+                Sort.Order(Sort.Direction.DESC, "views")
             )
             else -> null
         }
@@ -289,7 +289,11 @@ class MangaService: MangaRep {
         val statePage: Page<Manga> = if(status != null && genre != null){
             mangaRepository.findAll(pageable)
         } else if (status == null && genre != null){
-            mangaRepository.findByGenres(pageable, genre)
+            if(genre != "random") {
+                mangaRepository.findByGenres(pageable, genre)
+            } else {
+                mangaRepository.findByRandom(pageable)
+            }
         } else if (status != null) {
             mangaRepository.findByStatus(pageable, status)
         } else {
