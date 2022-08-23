@@ -2,6 +2,7 @@ package com.example.anifoxapi.controller.auth
 
 import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.jwt.JwtProvider
+import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.model.responses.SuccessfulSigninResponse
 import com.example.anifoxapi.model.user.LoginUser
 import com.example.anifoxapi.model.user.NewUser
@@ -66,7 +67,7 @@ class AuthController {
     lateinit var emailService: EmailService
 
     @PostMapping("/signin")
-    fun authenticateUser(@Valid @RequestBody loginRequest: LoginUser, response: HttpServletResponse): ResponseEntity<*> {
+    fun authenticateUser(@Valid @RequestBody loginRequest: LoginUser, response: HttpServletResponse): ServiceResponse<User?> {
 
         val userCandidate: Optional<User> = userRepository.findByUsername(loginRequest.username!!)
 
@@ -93,49 +94,55 @@ class AuthController {
             cookie.path = "/"
             response.addCookie(cookie)
 
-            val authorities: List<GrantedAuthority> =
-                user.roles!!.stream().map { role -> SimpleGrantedAuthority(role.name) }
-                    .collect(
-                        Collectors.toList<GrantedAuthority>()
-                    )
-            return ResponseEntity.ok(SuccessfulSigninResponse(user.username, authorities))
+//            val authorities: List<GrantedAuthority> =
+//                user.roles!!.stream().map { role -> SimpleGrantedAuthority(role.name) }
+//                    .collect(
+//                        Collectors.toList<GrantedAuthority>()
+//                    )
+            return ServiceResponse(
+                data = listOf(user),
+                status = HttpStatus.OK
+            )
         } else {
-            return ResponseEntity(
-                "User not found!",
-                HttpStatus.BAD_REQUEST
+            return ServiceResponse(
+                data = null,
+                status = HttpStatus.BAD_REQUEST,
+                message = "User not found!"
             )
         }
     }
 
     @PostMapping("/findUserByToken")
     @Tag(name = "Get user by Token", description = "TEST STATUS")
-    fun findUserByToken(@RequestParam token: String): Optional<User> {
+    fun findUserByToken(@RequestParam token: String): ServiceResponse<User> {
 
-        return userRepository.findByToken(token)
+        return ServiceResponse(data = listOf(userRepository.findByToken(token).get()), status = HttpStatus.OK)
     }
 
     @PostMapping("/signup")
-    fun registerUser(@Valid @RequestBody newUser: NewUser): ResponseEntity<*> {
+    fun registerUser(@Valid @RequestBody newUser: NewUser): ServiceResponse<User?> {
 
         val userCandidate: Optional<User> = userRepository.findByUsername(newUser.username!!)
 
         if (!userCandidate.isPresent) {
             if (usernameExists(newUser.username!!)) {
-                return ResponseEntity(
-                    "Username is already taken!",
-                    HttpStatus.BAD_REQUEST
+                return ServiceResponse(
+                    data = null,
+                    status = HttpStatus.BAD_REQUEST,
+                    message = "Username is already taken!"
                 )
             } else if (emailExists(newUser.email!!)) {
-                return ResponseEntity(
-                    "Email is already in use!",
-                    HttpStatus.BAD_REQUEST
+                return ServiceResponse(
+                    data = null,
+                    status = HttpStatus.BAD_REQUEST,
+                    message = "Email is already in use!"
                 )
             }
             val token = UUID.randomUUID().toString()
-
+            var user: User = User()
             try {
 
-                val user = User(
+                user = User(
                     id = 0,
                     username = newUser.username!!,
                     email = newUser.email!!,
@@ -149,21 +156,23 @@ class AuthController {
             userRepository.save(user)
 
             } catch (e: Exception) {
-                println("${e.message}")
-                return ResponseEntity(
-                    "${e.message}",
-                    HttpStatus.SERVICE_UNAVAILABLE
+                return ServiceResponse(
+                    data = null,
+                    status = HttpStatus.SERVICE_UNAVAILABLE,
+                    message = "${e.message}"
                 )
             }
 
-            return ResponseEntity(
-                "Registration completed! TOKEN = $token",
-                HttpStatus.OK
+            return ServiceResponse(
+                data = listOf(user),
+                status = HttpStatus.OK,
+                message = "Registration completed!"
             )
         } else {
-            return ResponseEntity(
-                "User already exists!",
-                HttpStatus.BAD_REQUEST
+            return ServiceResponse(
+                data = null,
+                status = HttpStatus.BAD_REQUEST,
+                message = "User already exists!"
             )
         }
     }
