@@ -41,13 +41,13 @@ class BackendController() {
     @GetMapping("/persons")
     fun getPersons() = personRepository.findAll()
 
-    @GetMapping("/usercontent")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @ResponseBody
-    fun getUserContent(authentication: Authentication): String {
-        val user: User = userRepository.findByUsername(authentication.name).get()
-        return "Hello " + user.firstName + " " + user.lastName + "!"
-    }
+//    @GetMapping("/usercontent")
+//    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+//    @ResponseBody
+//    fun getUserContent(authentication: Authentication): String {
+//        val user: User = userRepository.findByUsername(authentication.name).get()
+//        return "Hello " + user.firstName + " " + user.lastName + "!"
+//    }
 
     @GetMapping("/admincontent")
     @PreAuthorize("hasRole('ADMIN')")

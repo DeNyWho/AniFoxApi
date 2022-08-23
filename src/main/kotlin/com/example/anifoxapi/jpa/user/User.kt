@@ -14,12 +14,6 @@ data class User (
         @Column(name="username")
         var username: String?=null,
 
-        @Column(name="first_name")
-        var firstName: String?=null,
-
-        @Column(name="last_name")
-        var lastName: String?=null,
-
         @Column(name="email")
         var email: String?=null,
 
@@ -28,6 +22,9 @@ data class User (
 
         @Column(name="enabled")
         var enabled: Boolean = false,
+
+        @Column(name="token")
+        var token: String? = null,
 
         @ManyToMany(fetch = FetchType.EAGER)
         @JoinTable(

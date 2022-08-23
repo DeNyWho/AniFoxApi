@@ -112,10 +112,8 @@ class EmailService: EmailRepository {
     }
 
     override fun sendRegistrationConfirmationEmail(user: User) {
-        val token = UUID.randomUUID().toString()
-        println("TOKEN = $token")
-        userService.createVerificationTokenForUser(token, user)
-        val link = "$hostUrl/api2/auth/registrationConfirm?token=$token"
+        userService.createVerificationTokenForUser(user.token!!, user)
+        val link = "$hostUrl/api2/auth/registrationConfirm?token=${user.token}"
         val msg = "<p>Please, follow the link to complete your registration:</p><p><a href=\"$link\">$link</a></p>"
         user.email?.let{sendHtmlMessage(user.email!!, "AniFox Security: Registration Confirmation", msg)}
     }

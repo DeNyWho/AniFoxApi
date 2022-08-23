@@ -2,7 +2,6 @@ package com.example.anifoxapi.controller.anime
 
 import com.example.anifoxapi.jpa.manga.Manga
 import com.example.anifoxapi.model.manga.MangaLightResponse
-import com.example.anifoxapi.model.manga.TestMangaResponse
 import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.service.manga.MangaService
 import io.swagger.v3.oas.annotations.Operation
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+
 
 @RestController
 @Tag(name = "MangaApi", description = "All about manga")
@@ -23,16 +23,14 @@ class MangaParserController {
     @GetMapping("search")
     @Operation(summary = "Search manga")
     fun search(
-        @RequestParam search: String,
+        @RequestParam query: String,
     ): ServiceResponse<MangaLightResponse> {
         return try {
-            val data = service.search(query = search)
+            val data = service.search(query = query)
 
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
-        } catch (e: Exception) {
-            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
         }
     }
 
@@ -51,6 +49,7 @@ class MangaParserController {
             ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
         }
     }
+
 
     @GetMapping("")
     @Operation(summary = "Get manga")
@@ -81,7 +80,7 @@ class MangaParserController {
     fun parseManga(): ServiceResponse<Long> {
         return try {
             val start = System.currentTimeMillis()
-            service.addPopularDataToDB()
+            service.addDataToDB()
 
             val finish = System.currentTimeMillis()
             val elapsed = finish - start
@@ -90,9 +89,10 @@ class MangaParserController {
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
 
-        } catch (e: Exception) {
-            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
         }
+//        catch (e: Exception) {
+//            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+//        }
     }
 
 }

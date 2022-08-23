@@ -19,8 +19,7 @@ interface MangaRep {
 
     fun readMangaByLink(url: String): List<String>
 
-    fun test(): List<String>
-    fun addPopularDataToDB(): Manga
+    fun addDataToDB(): Manga
     fun getMangaFromDB(id: Int): Manga
     fun getManga(countCard: Int, status: String?, page: Int, order: String?, genre: String?): List<MangaLightResponse>
 }
@@ -38,6 +37,9 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
 
     @Query(value = "Select u From Manga u where u.types.status = :status")
     fun findByStatus(pageable: Pageable, @Param("status") status: String): Page<Manga>
+
+    @Query(value = "Select u From Manga u where u.types.status = :status and :title member of u.genres.title")
+    fun findByStatusAndGenre(pageable: Pageable, @Param("status") status: String, @Param("title") genre: String): Page<Manga>
 
     override fun findById(id: Int): Optional<Manga>
 

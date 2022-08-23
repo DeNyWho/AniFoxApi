@@ -73,17 +73,17 @@ class AuthController {
         if (userCandidate.isPresent) {
             val user: User = userCandidate.get()
 
-            if (!user.enabled) {
-                return ResponseEntity(
-                    "Account is not verified yet! Please, follow the link in the confirmation email.",
-                    HttpStatus.UNAUTHORIZED
-                )
-            }
+//            if (!user.enabled) {
+//                return ResponseEntity(
+//                    "Account is not verified yet! Please, follow the link in the confirmation email.",
+//                    HttpStatus.UNAUTHORIZED
+//                )
+//            }
 
             val authentication = authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
             )
-            SecurityContextHolder.getContext().setAuthentication(authentication)
+            SecurityContextHolder.getContext().authentication = authentication
             val jwt: String = jwtProvider.generateJwtToken(user.username!!)
 
             val cookie = Cookie(authCookieName, jwt)
@@ -107,6 +107,13 @@ class AuthController {
         }
     }
 
+    @PostMapping("/findUserByToken")
+    @Tag(name = "Get user by Token", description = "TEST STATUS")
+    fun findUserByToken(@RequestParam token: String): Optional<User> {
+
+        return userRepository.findByToken(token)
+    }
+
     @PostMapping("/signup")
     fun registerUser(@Valid @RequestBody newUser: NewUser): ResponseEntity<*> {
 
@@ -124,29 +131,25 @@ class AuthController {
                     HttpStatus.BAD_REQUEST
                 )
             }
+            val token = UUID.randomUUID().toString()
 
             try {
 
                 val user = User(
-                    0,
-                    newUser.username!!,
-                    newUser.firstName!!,
-                    newUser.lastName!!,
-                    newUser.email!!,
-                    encoder.encode(newUser.password),
-                    false
+                    id = 0,
+                    username = newUser.username!!,
+                    email = newUser.email!!,
+                    password = encoder.encode(newUser.password),
+                    enabled = false,
+                    token = token
                 )
 
             user.roles = listOf(roleRepository.findByName("ROLE_USER"))
 
-            println("USER = $user")
+            userRepository.save(user)
 
-            val registeredUser = userRepository.save(user)
-
-                println("USER = $user")
-
-                emailService.sendRegistrationConfirmationEmail(registeredUser)
             } catch (e: Exception) {
+                println("${e.message}")
                 return ResponseEntity(
                     "${e.message}",
                     HttpStatus.SERVICE_UNAVAILABLE
@@ -154,7 +157,7 @@ class AuthController {
             }
 
             return ResponseEntity(
-                "Please, follow the link in the confirmation email to complete the registration.",
+                "Registration completed! TOKEN = $token",
                 HttpStatus.OK
             )
         } else {
@@ -163,6 +166,19 @@ class AuthController {
                 HttpStatus.BAD_REQUEST
             )
         }
+    }
+
+    @PostMapping("/confirmEmail")
+    fun confirmRegistration(@Valid @RequestParam token: String): String {
+        val registeredUser = userRepository.findByToken(token).get()
+
+        return try {
+            emailService.sendRegistrationConfirmationEmail(registeredUser)
+            "email confirmed"
+        } catch (e: Exception){
+            "Erorr: ${e.message}"
+        }
+
     }
 
     @GetMapping("/registrationConfirm")

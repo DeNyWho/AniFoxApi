@@ -14,4 +14,7 @@ data class Chapters (
 
     @ElementCollection
     val url: List<String> = ArrayList<String>(),
+
+    @ElementCollection
+    val date: List<String> = ArrayList<String>(),
 )

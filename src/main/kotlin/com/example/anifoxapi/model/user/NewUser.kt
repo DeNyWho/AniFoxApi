@@ -8,12 +8,6 @@ class NewUser : Serializable {
     @JsonProperty("username")
     var username: String? = null
 
-    @JsonProperty("firstName")
-    var firstName: String? = null
-
-    @JsonProperty("lastName")
-    var lastName: String? = null
-
     @JsonProperty("email")
     var email: String? = null
 
@@ -22,10 +16,8 @@ class NewUser : Serializable {
 
     constructor() {}
 
-    constructor(username: String, firstName: String, lastName: String, email: String, password: String ) {
+    constructor(username: String, email: String, password: String ) {
         this.username = username
-        this.firstName = firstName
-        this.lastName = lastName
         this.email = email
         this.password = password
     }

@@ -2,7 +2,6 @@ package com.example.anifoxapi.service.manga
 
 import com.example.anifoxapi.jpa.manga.*
 import com.example.anifoxapi.model.manga.MangaLightResponse
-import com.example.anifoxapi.model.manga.TestMangaResponse
 import com.example.anifoxapi.repository.manga.MangaRep
 import com.example.anifoxapi.repository.manga.MangaRepository
 import com.example.anifoxapi.util.OS
@@ -14,10 +13,7 @@ import it.skrape.fetcher.skrape
 import it.skrape.selects.eachAttribute
 import it.skrape.selects.eachHref
 import it.skrape.selects.eachText
-import it.skrape.selects.html5.a
-import it.skrape.selects.html5.div
-import it.skrape.selects.html5.li
-import it.skrape.selects.html5.span
+import it.skrape.selects.html5.*
 import org.openqa.selenium.*
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
@@ -27,6 +23,10 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import java.awt.image.BufferedImage
+import java.io.File
+import java.net.URL
+import javax.imageio.ImageIO
 
 
 @Service
@@ -58,7 +58,7 @@ class MangaService: MangaRep {
         return light.toList()
     }
 
-    override fun addPopularDataToDB(): Manga {
+    override fun addDataToDB(): Manga {
         var maxId = 0
         var pageSize = 0
         val urls = mutableListOf<String>()
@@ -103,7 +103,7 @@ class MangaService: MangaRep {
                     //image
                     document.div {
                         withClass = "comic-grid-image"
-                        images.addAll(findAll { return@findAll eachAttribute("data-background-image") })
+                        images.addAll(findAll { return@findAll eachAttribute("data-background-image") }.map { "https://mangahub.ru$it" })
                     }
                 }
             }
@@ -112,6 +112,9 @@ class MangaService: MangaRep {
             var description = ""
             var genres =  Genres()
             var chapters =  Chapters()
+            var urlsSlides =  listOf<String>()
+            var urlsTitles=  listOf<String>()
+            var urlsDates =  listOf<String>()
             var info = Info()
             var typesName =   listOf<String>()
             var typesValue =  listOf<String>()
@@ -191,20 +194,26 @@ class MangaService: MangaRep {
                     url = link.replace("title","chapters")
                 }
                 response {
-                    //chapters
-                    document.a {
-                        try {
-                            withClass = "d-inline-flex.ms-2.fs-2.fw-medium.text-reset.min-w-0.flex-lg-grow-1"
-                            println(findAll { return@findAll eachHref })
-                            chapters = Chapters(
-                                title = findAll { return@findAll eachText },
-                                url = findAll { return@findAll eachHref }.map { "\"https://mangahub.ru/$it" }
-                            )
-                        } catch (e: Exception) {
+                    try {
+                        //chapters
+                        document.a {
+                            try {
+                                withClass = "d-inline-flex.ms-2.fs-2.fw-medium.text-reset.min-w-0.flex-lg-grow-1"
+                                urlsSlides =
+                                    findAll { return@findAll eachHref }.map { "\"https://mangahub.ru/$it?page=1" }
+                                urlsTitles = findAll { return@findAll eachText }
+                            } catch (e: Exception) {
 
-                            withClass = "text-muted.text-center.fw-medium.py-4"
-                            chapters = Chapters(title = emptyList(), url = emptyList())
+                                withClass = "text-muted.text-center.fw-medium.py-4"
+                                urlsSlides = emptyList()
+                            }
                         }
+                        document.div {
+                            withClass = "detail-chapter-date.ms-2.text-muted"
+                            urlsDates = findAll { return@findAll eachText }
+                        }
+                    } catch (e: Exception){
+
                     }
                 }
             }
@@ -244,8 +253,12 @@ class MangaService: MangaRep {
                     ),
                     views = views.toInt(),
                     info = info,
-                    chapters = chapters,
-                    chaptersCount = chapters.url.size,
+                    chapters = Chapters(
+                        title = urlsTitles,
+                        url = urlsSlides,
+                        date = urlsDates
+                    ),
+                    chaptersCount = urlsTitles.size,
                     rate = rate.toDouble(),
                     countRate = rateCount.toInt(),
                 )
@@ -287,7 +300,7 @@ class MangaService: MangaRep {
 
         val pageable: Pageable = if(sort != null ) PageRequest.of(page, countCard, sort) else PageRequest.of(page, countCard)
         val statePage: Page<Manga> = if(status != null && genre != null){
-            mangaRepository.findAll(pageable)
+            mangaRepository.findByStatusAndGenre(pageable, status, genre)
         } else if (status == null && genre != null){
             if(genre != "random") {
                 mangaRepository.findByGenres(pageable, genre)
@@ -327,17 +340,6 @@ class MangaService: MangaRep {
         }
     }
 
-    override fun test(): List<String> {
-        val driver = setWebDriver("https://mangalib.me/")
-        val list = mutableListOf<String>()
-        val elems = driver.findElements(By.xpath("//a[@href]"))
-        for( i in 0 until elems.size){
-            list.add(elems[i].getAttribute("href"))
-        }
-        println(list.size)
-        return list
-    }
-
     override fun readMangaByLink(url: String): List<String> {
         val driver = setWebDriver(url)
         val pagesReader = driver.findElement(By.xpath("//*[@class=\"button reader-pages__label reader-footer__btn\"]")).text
@@ -365,8 +367,9 @@ class MangaService: MangaRep {
         }
         System.setProperty("webdriver.chrome.driver", "driver/chromedriver$pathDriver");
         val options = ChromeOptions()
+//        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36")
         options.addArguments("--headless")
-        val driver = ChromeDriver(options)
+            val driver = ChromeDriver(options)
         try {
             driver.get(url);
         } catch (e: Exception) {
