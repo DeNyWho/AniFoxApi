@@ -1,6 +1,8 @@
 package com.example.anifoxapi.repository.manga
 
 import com.example.anifoxapi.jpa.manga.Manga
+import com.example.anifoxapi.jpa.manga.MangaResponseDto
+import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.manga.TestMangaResponse
 import org.springframework.data.domain.Page
@@ -20,13 +22,16 @@ interface MangaRep {
     fun readMangaByLink(url: String): List<String>
 
     fun addDataToDB(): Manga
-    fun getMangaFromDB(id: Int): Manga
+    fun getMangaFromDB(id: Int): MangaResponseDto
     fun getManga(countCard: Int, status: String?, page: Int, order: String?, genre: String?): List<MangaLightResponse>
 }
 
 
 @Repository
 interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
+
+
+    fun findMangasByUsers(user: User, pageable: Pageable): Page<MangaResponseDto>
 
     @Query(value = "Select u From Manga u where :title member of u.genres.title")
     fun findByGenres(pageable: Pageable, @Param("title") genre: String): Page<Manga>

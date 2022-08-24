@@ -4,7 +4,6 @@ plugins {
     id("org.springframework.boot") version "2.7.1"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.6.21"
-
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.spring") version "1.6.21"
 }
@@ -59,6 +58,8 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-web")
 
+    // Mapstruct
+    implementation("org.mapstruct:mapstruct:1.5.2.Final")
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-mail")

@@ -1,5 +1,7 @@
 package com.example.anifoxapi.jpa.manga
 
+import com.example.anifoxapi.jpa.user.User
+import org.hibernate.Hibernate
 import javax.persistence.*
 
 @Entity
@@ -24,5 +26,26 @@ data class Manga(
     var views: Int = 0,
     var rate: Double = 0.0,
     @Column(name = "count_rate")
-    var countRate: Int = 0
-)
+    var countRate: Int = 0,
+
+    @ManyToMany(
+        fetch = FetchType.EAGER,
+        mappedBy = "favouriteManga",
+        cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]
+    ) var users: MutableSet<User> = mutableSetOf()
+){
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+        if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) {
+            return false
+        }
+        val manga = other as Manga
+        return id == manga.id
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
+}

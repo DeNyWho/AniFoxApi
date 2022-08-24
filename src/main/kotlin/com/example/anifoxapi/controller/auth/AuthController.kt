@@ -1,6 +1,7 @@
 package com.example.anifoxapi.controller.auth
 
 import com.example.anifoxapi.jpa.user.User
+import com.example.anifoxapi.jpa.user.UserResponseDto
 import com.example.anifoxapi.jwt.JwtProvider
 import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.model.responses.SuccessfulSigninResponse
@@ -27,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import java.io.UnsupportedEncodingException
+import java.time.LocalDateTime
 import java.util.*
 import java.util.stream.Collectors
 import javax.servlet.http.Cookie
@@ -67,7 +69,7 @@ class AuthController {
     lateinit var emailService: EmailService
 
     @PostMapping("/signin")
-    fun authenticateUser(@Valid @RequestBody loginRequest: LoginUser, response: HttpServletResponse): ServiceResponse<User?> {
+    fun authenticateUser(@Valid @RequestBody loginRequest: LoginUser, response: HttpServletResponse): ServiceResponse<UserResponseDto?> {
 
         val userCandidate: Optional<User> = userRepository.findByUsername(loginRequest.username!!)
 
@@ -100,8 +102,18 @@ class AuthController {
 //                        Collectors.toList<GrantedAuthority>()
 //                    )
             return ServiceResponse(
-                data = listOf(user),
-                status = HttpStatus.OK
+                data = listOf(UserResponseDto(
+                    id = user.id,
+                    username = user.username,
+                    email = user.email,
+                    password = user.password,
+                    enabled = user.enabled,
+                    token = user.token,
+                    roles = user.roles,
+                    created = user.created
+                )),
+                status = HttpStatus.OK,
+                message = cookie.value
             )
         } else {
             return ServiceResponse(
@@ -114,13 +126,23 @@ class AuthController {
 
     @PostMapping("/findUserByToken")
     @Tag(name = "Get user by Token", description = "TEST STATUS")
-    fun findUserByToken(@RequestParam token: String): ServiceResponse<User> {
-
-        return ServiceResponse(data = listOf(userRepository.findByToken(token).get()), status = HttpStatus.OK)
+    fun findUserByToken(@RequestParam token: String): ServiceResponse<UserResponseDto> {
+        val user = userRepository.findByToken(token).get()
+        return ServiceResponse(data = listOf(UserResponseDto(
+            id = user.id,
+            username = user.username,
+            email = user.email,
+            password = user.password,
+            enabled = user.enabled,
+            token = user.token,
+            roles = user.roles,
+            created = user.created
+        )
+        ), status = HttpStatus.OK)
     }
 
     @PostMapping("/signup")
-    fun registerUser(@Valid @RequestBody newUser: NewUser): ServiceResponse<User?> {
+    fun registerUser(@Valid @RequestBody newUser: NewUser): ServiceResponse<UserResponseDto?> {
 
         val userCandidate: Optional<User> = userRepository.findByUsername(newUser.username!!)
 
@@ -148,7 +170,8 @@ class AuthController {
                     email = newUser.email!!,
                     password = encoder.encode(newUser.password),
                     enabled = false,
-                    token = token
+                    token = token,
+                    created = LocalDateTime.now()
                 )
 
             user.roles = listOf(roleRepository.findByName("ROLE_USER"))
@@ -164,7 +187,16 @@ class AuthController {
             }
 
             return ServiceResponse(
-                data = listOf(user),
+                data = listOf(UserResponseDto(
+                    id = user.id,
+                    username = user.username,
+                    email = user.email,
+                    password = user.password,
+                    enabled = user.enabled,
+                    token = user.token,
+                    roles = user.roles,
+                    created = user.created
+                )),
                 status = HttpStatus.OK,
                 message = "Registration completed!"
             )

@@ -32,9 +32,26 @@ import javax.imageio.ImageIO
 @Service
 class MangaService: MangaRep {
 
+    fun toDto(manga: Manga): MangaResponseDto {
+        return MangaResponseDto(
+            id = manga.id,
+            title = manga.title,
+            image = manga.image,
+            url = manga.url,
+            description = manga.description,
+            genres = manga.genres,
+            types = manga.types,
+            info = manga.info,
+            chapters = manga.chapters,
+            chaptersCount = manga.chaptersCount,
+            views = manga.views,
+            rate = manga.rate,
+            countRate = manga.countRate
+        )
+    }
+
     @Autowired
     lateinit var mangaRepository: MangaRepository
-
 
     override fun search(query: String): List<MangaLightResponse> {
 
@@ -332,11 +349,12 @@ class MangaService: MangaRep {
     }
 
 
-    override fun getMangaFromDB(id: Int): Manga {
+    override fun getMangaFromDB(id: Int): MangaResponseDto {
         return try {
-            mangaRepository.findById(id).get()
+            val manga = mangaRepository.findById(id).get()
+            return toDto(manga)
         } catch (e: Exception) {
-            Manga()
+            MangaResponseDto()
         }
     }
 

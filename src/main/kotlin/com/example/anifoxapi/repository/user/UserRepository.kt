@@ -17,6 +17,9 @@ interface UserDetailsService : UserDetailsService {
 
 interface UserRepository: JpaRepository<User, Long> {
 
+//    @Query
+//    fun FindingById()
+
     fun existsByUsername(@Param("username") username: String): Boolean
 
     fun findByUsername(@Param("username") username: String): Optional<User>

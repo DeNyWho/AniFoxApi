@@ -1,6 +1,7 @@
 package com.example.anifoxapi.controller.anime
 
 import com.example.anifoxapi.jpa.manga.Manga
+import com.example.anifoxapi.jpa.manga.MangaResponseDto
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.service.manga.MangaService
@@ -38,7 +39,7 @@ class MangaParserController {
     @Operation(summary = "Get detail of manga")
     fun getMangaById(
         @PathVariable id: Int
-    ): ServiceResponse<Manga> {
+    ): ServiceResponse<MangaResponseDto> {
         return try {
             val data = service.getMangaFromDB(id)
 
