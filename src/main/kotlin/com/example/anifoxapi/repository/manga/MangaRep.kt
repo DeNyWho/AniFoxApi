@@ -30,8 +30,15 @@ interface MangaRep {
 @Repository
 interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
 
-
     fun findMangasByUsers(user: User, pageable: Pageable): Page<MangaResponseDto>
+
+    fun findMangasByCompletedMangaUsers(user: User, pageable: Pageable): Page<MangaResponseDto>
+
+    fun findMangasByWatchMangaUsers (user: User, pageable: Pageable): Page<MangaResponseDto>
+
+    fun findMangasByOnHoldMangaUsers (user: User, pageable: Pageable): Page<MangaResponseDto>
+
+
 
     @Query(value = "Select u From Manga u where :title member of u.genres.title")
     fun findByGenres(pageable: Pageable, @Param("title") genre: String): Page<Manga>

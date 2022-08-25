@@ -1,7 +1,5 @@
 package com.example.anifoxapi.controller.user
 
-import com.example.anifoxapi.jpa.manga.Manga
-import com.example.anifoxapi.jpa.manga.MangaResponseDto
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.responses.BasicResponse
 import com.example.anifoxapi.model.responses.PageableResponse
@@ -15,38 +13,33 @@ import javax.validation.constraints.Min
 
 @RestController
 @Tag(name = "User API", description = "All about user")
-@RequestMapping("/api2/user/favourite/")
+@RequestMapping("/api2/user/")
 class UserController {
 
     @Autowired
     lateinit var favouriteService: FavouriteService
 
-    @PostMapping("add")
+    @PostMapping("favourite/add")
     fun addFavourite(@RequestBody dto: FavouriteDto, @RequestParam status: String ): BasicResponse<Void> {
         favouriteService.addFavourite(dto, status)
         return BasicResponse()
     }
 
-    @PostMapping("remove")
+    @PostMapping("favourite/remove")
     fun removeFromFavourite(@RequestBody dto: FavouriteDto): BasicResponse<Void> {
         favouriteService.removeFavourite(dto)
         return BasicResponse()
     }
 
-    @GetMapping
+    @GetMapping("favourite/")
     fun getFavouriteByUserUuid(
         @RequestParam id: Long,
         @RequestParam(defaultValue = "1") pageNum: @Min(1) Int,
-        @RequestParam(defaultValue = "12") pageSize: @Min(1) @Max(500) Int
+        @RequestParam(defaultValue = "12") pageSize: @Min(1) @Max(500) Int,
+        status: String?
     ): BasicResponse<PageableResponse<MangaLightResponse>> {
-        println("HUCH")
-        return BasicResponse(favouriteService.getUserMangaByUserId(id, pageNum, pageSize))
+        return BasicResponse(favouriteService.getUserMangaByUserId(id, pageNum, pageSize, status))
     }
-
-//    @PostMapping("/checkIsFavourite")
-//    fun checkIsFavourite(@RequestBody dto: FavouriteDto): BasicResponse<Boolean> {
-//        return BasicResponse(favouriteService.checkIsFavourite(dto), true)
-//    }
 
 
 }

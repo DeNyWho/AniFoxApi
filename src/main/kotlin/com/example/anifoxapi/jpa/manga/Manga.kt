@@ -32,7 +32,25 @@ data class Manga(
         fetch = FetchType.EAGER,
         mappedBy = "favouriteManga",
         cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]
-    ) var users: MutableSet<User> = mutableSetOf()
+    ) var users: MutableSet<User> = mutableSetOf(),
+
+    @ManyToMany(
+        fetch = FetchType.EAGER,
+        mappedBy = "watchingManga",
+        cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]
+    ) var watchMangaUsers: MutableSet<User> = mutableSetOf(),
+
+    @ManyToMany(
+        fetch = FetchType.EAGER,
+        mappedBy = "completedManga",
+        cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]
+    ) var completedMangaUsers: MutableSet<User> = mutableSetOf(),
+
+    @ManyToMany(
+        fetch = FetchType.EAGER,
+        mappedBy = "onHoldManga",
+        cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]
+    ) var onHoldMangaUsers: MutableSet<User> = mutableSetOf(),
 ){
     override fun equals(other: Any?): Boolean {
         if (this === other) {

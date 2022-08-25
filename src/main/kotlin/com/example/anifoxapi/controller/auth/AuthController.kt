@@ -125,7 +125,6 @@ class AuthController {
     }
 
     @PostMapping("/findUserByToken")
-    @Tag(name = "Get user by Token", description = "TEST STATUS")
     fun findUserByToken(@RequestParam token: String): ServiceResponse<UserResponseDto> {
         val user = userRepository.findByToken(token).get()
         return ServiceResponse(data = listOf(UserResponseDto(
