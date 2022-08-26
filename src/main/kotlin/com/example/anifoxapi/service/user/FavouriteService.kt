@@ -17,9 +17,9 @@ class FavouriteService(
 ) {
 
     fun getUserMangaByUserId(
-        id: Long, page: Int, size: Int, status: String?
+        page: Int, size: Int, token: String, status: String?
     ): PageableResponse<MangaLightResponse> {
-        val user = userRepository.findById(id).orElseThrow { UsernameNotFoundException("No user found by this id: $id") }
+        val user = userRepository.findByToken(token).orElseThrow { UsernameNotFoundException("No user found by this token: $token") }
         val result = when(status){
             "completed" -> mangaRepository.findMangasByCompletedMangaUsers(user, PageRequest.of(page - 1, size))
             "watching" -> mangaRepository.findMangasByWatchMangaUsers(user, PageRequest.of(page - 1, size))
@@ -56,19 +56,22 @@ class FavouriteService(
 
     fun addFavourite(dto: FavouriteDto, status: String) {
         val manga = mangaRepository.findById(dto.mangaId).get()
-        val user = userRepository.getById(dto.userId)
+        val user = userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
             .addToFavourite(manga)
         when(status){
-            "holdOn" -> userRepository.getById(dto.userId).addToOnHold(manga)
-            "watching" -> userRepository.getById(dto.userId).addToWatching(manga)
-            "completed" -> userRepository.getById(dto.userId).addToCompleted(manga)
+            "holdOn" -> userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
+                .addToOnHold(manga)
+            "watching" -> userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
+                .addToWatching(manga)
+            "completed" -> userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
+                .addToCompleted(manga)
         }
         userRepository.save(user)
     }
 
     fun removeFavourite(dto: FavouriteDto) {
         val manga = mangaRepository.findById(dto.mangaId).get()
-        val user = userRepository.getById(dto.userId)
+        val user = userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
             .removeFromFavourite(manga)
         userRepository.save(user)
     }

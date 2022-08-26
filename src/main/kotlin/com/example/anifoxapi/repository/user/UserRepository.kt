@@ -24,6 +24,7 @@ interface UserRepository: JpaRepository<User, Long> {
 
     fun findByUsername(@Param("username") username: String): Optional<User>
 
+
     @Query(value = "SELECT u FROM User u where u.token = :token")
     fun findByToken(@Param("token") token: String): Optional<User>
 

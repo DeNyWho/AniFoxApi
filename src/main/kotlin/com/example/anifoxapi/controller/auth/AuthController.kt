@@ -71,7 +71,9 @@ class AuthController {
     @PostMapping("/signin")
     fun authenticateUser(@Valid @RequestBody loginRequest: LoginUser, response: HttpServletResponse): ServiceResponse<UserResponseDto?> {
 
-        val userCandidate: Optional<User> = userRepository.findByUsername(loginRequest.username!!)
+        val userCandidate: Optional<User> = userRepository.findByEmail(loginRequest.email!!)
+
+        println("USER = ${userCandidate.get()}")
 
         if (userCandidate.isPresent) {
             val user: User = userCandidate.get()
@@ -84,7 +86,7 @@ class AuthController {
 //            }
 
             val authentication = authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
+                UsernamePasswordAuthenticationToken(user.username, loginRequest.password)
             )
             SecurityContextHolder.getContext().authentication = authentication
             val jwt: String = jwtProvider.generateJwtToken(user.username!!)

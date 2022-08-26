@@ -33,12 +33,12 @@ class UserController {
 
     @GetMapping("favourite/")
     fun getFavouriteByUserUuid(
-        @RequestParam id: Long,
+        @RequestParam token: String,
         @RequestParam(defaultValue = "1") pageNum: @Min(1) Int,
         @RequestParam(defaultValue = "12") pageSize: @Min(1) @Max(500) Int,
         status: String?
     ): BasicResponse<PageableResponse<MangaLightResponse>> {
-        return BasicResponse(favouriteService.getUserMangaByUserId(id, pageNum, pageSize, status))
+        return BasicResponse(favouriteService.getUserMangaByUserId(page = pageNum, size = pageSize, token = token, status = status))
     }
 
 
