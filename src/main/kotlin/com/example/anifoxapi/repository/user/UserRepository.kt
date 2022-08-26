@@ -1,6 +1,7 @@
 package com.example.anifoxapi.repository.user
 
 import com.example.anifoxapi.jpa.user.User
+import com.example.anifoxapi.jpa.user.UserResponseDto
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -28,6 +29,7 @@ interface UserRepository: JpaRepository<User, Long> {
     @Query(value = "SELECT u FROM User u where u.token = :token")
     fun findByToken(@Param("token") token: String): Optional<User>
 
+    @Query(value = "SELECT u FROM User u where u.email = :email")
     fun findByEmail(@Param("email") email: String): Optional<User>
 
     @Transactional

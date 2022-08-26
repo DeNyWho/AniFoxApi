@@ -73,7 +73,7 @@ class AuthController {
 
         val userCandidate: Optional<User> = userRepository.findByEmail(loginRequest.email!!)
 
-        println("USER = ${userCandidate.get()}")
+        println("USER = ${userCandidate.get().token}")
 
         if (userCandidate.isPresent) {
             val user: User = userCandidate.get()
