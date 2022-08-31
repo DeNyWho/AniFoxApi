@@ -1,7 +1,9 @@
 package com.example.anifoxapi.service.user
 
+import com.example.anifoxapi.jpa.user.RecoveryCode
 import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.jpa.user.VerificationToken
+import com.example.anifoxapi.repository.user.RecoveryCodeRepository
 import com.example.anifoxapi.repository.user.UserDetailsService
 import com.example.anifoxapi.repository.user.UserRepository
 import com.example.anifoxapi.repository.user.VerificationTokenRepository
@@ -21,6 +23,18 @@ class UserService: UserDetailsService {
 
     @Autowired
     lateinit var tokenRepository: VerificationTokenRepository
+
+    @Autowired
+    lateinit var recoveryCodeRepository: RecoveryCodeRepository
+
+
+    override fun changeUserPassword (email: String, password: String) {
+        val user = userRepository.findByEmail(email).get()
+        user.password = password
+
+        userRepository.save(user)
+
+    }
 
     @Throws(UsernameNotFoundException::class)
     override fun loadUserByUsername(username: String): UserDetails {
@@ -43,6 +57,15 @@ class UserService: UserDetailsService {
 
     override fun createVerificationTokenForUser(token: String, user: User) {
         tokenRepository.save(VerificationToken(token, user))
+    }
+
+    override fun createRecoverCodeForUser(code: Int, user: User) {
+        val exists = recoveryCodeRepository.findByUser(user)
+        if(exists.isPresent){
+            recoveryCodeRepository.deleteByUser(exists.get().user!!)
+        }
+
+        recoveryCodeRepository.save(RecoveryCode(code, user))
     }
 
     override fun validateVerificationToken(token: String): String {

@@ -76,6 +76,23 @@ class MangaParserController {
         }
     }
 
+    @GetMapping("similar/{id}")
+    @Operation(summary = "TEST")
+    fun similarManga(
+        @RequestParam page: Int,
+        @RequestParam countCard: Int,
+        @PathVariable id: Int
+    ): ServiceResponse<MangaLightResponse>{
+        return try {
+
+            val data = service.similarManga(id = id, countCard = countCard, page = page)
+
+            return ServiceResponse(data = data, status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        }
+    }
+
     @GetMapping("parser")
     @Operation(summary = "Parse manga and add data to postgreSQL")
     fun parseManga(): ServiceResponse<Long> {
@@ -89,11 +106,10 @@ class MangaParserController {
             return ServiceResponse(data = listOf(elapsed), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
-
         }
-//        catch (e: Exception) {
-//            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
-//        }
+        catch (e: Exception) {
+            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
+        }
     }
 
 }

@@ -115,6 +115,16 @@ class EmailService: EmailRepository {
         userService.createVerificationTokenForUser(user.token!!, user)
         val link = "$hostUrl/api2/auth/registrationConfirm?token=${user.token}"
         val msg = "<p>Please, follow the link to complete your registration:</p><p><a href=\"$link\">$link</a></p>"
+        user.email?.let { sendHtmlMessage(user.email!!, "AniFox Security: Registration Confirmation", msg) }
+    }
+
+    override fun sendRecoveryCode(user: User) {
+        val code = (1000..9999).random()
+
+
+        userService.createRecoverCodeForUser(code, user)
+        val msg = "<p>Hello, here is your code: </p><p>$code</p>"
         user.email?.let{sendHtmlMessage(user.email!!, "AniFox Security: Registration Confirmation", msg)}
     }
+
 }

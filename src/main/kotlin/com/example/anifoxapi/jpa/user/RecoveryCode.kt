@@ -6,15 +6,15 @@ import java.util.*
 import javax.persistence.*
 
 @Entity
-@Table(name = "verification_token")
-data class VerificationToken(
+@Table(name = "recovery_code")
+data class RecoveryCode(
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long? = 0,
 
-    @Column(name = "token")
-    var token: String? = null,
+    @Column(name = "code")
+    var code: Int? = null,
 
     @Column(name = "expiry_date")
     val expiryDate: Date? = null,
@@ -23,7 +23,7 @@ data class VerificationToken(
     @JoinColumn(nullable = false, name = "user_id")
     val user: User? = null
 ) {
-    constructor(token: String?, user: User) : this(0, token, calculateExpiryDate(1440), user)
+    constructor(code: Int?, user: User) : this(0, code, calculateExpiryDate(1440), user)
 }
 
 private fun calculateExpiryDate(expiryTimeInMinutes: Int): Date {

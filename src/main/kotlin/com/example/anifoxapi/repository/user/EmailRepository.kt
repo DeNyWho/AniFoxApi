@@ -23,4 +23,6 @@ interface EmailRepository {
                         htmlMsg: String)
 
     fun sendRegistrationConfirmationEmail(user: User)
+
+    fun sendRecoveryCode(user: User)
 }

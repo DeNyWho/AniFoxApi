@@ -7,6 +7,7 @@ import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.model.responses.SuccessfulSigninResponse
 import com.example.anifoxapi.model.user.LoginUser
 import com.example.anifoxapi.model.user.NewUser
+import com.example.anifoxapi.repository.user.RecoveryCodeRepository
 import com.example.anifoxapi.repository.user.RoleRepository
 import com.example.anifoxapi.repository.user.UserRepository
 import com.example.anifoxapi.service.user.EmailService
@@ -34,6 +35,7 @@ import java.util.stream.Collectors
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import javax.transaction.Transactional
 import javax.validation.Valid
 
 @RestController
@@ -54,6 +56,9 @@ class AuthController {
     lateinit var userRepository: UserRepository
 
     @Autowired
+    lateinit var recoveryCodeRepository: RecoveryCodeRepository
+
+    @Autowired
     lateinit var roleRepository: RoleRepository
 
     @Autowired
@@ -69,7 +74,10 @@ class AuthController {
     lateinit var emailService: EmailService
 
     @PostMapping("/signin")
-    fun authenticateUser(@Valid @RequestBody loginRequest: LoginUser, response: HttpServletResponse): ServiceResponse<UserResponseDto?> {
+    fun authenticateUser(
+        @Valid @RequestBody loginRequest: LoginUser,
+        response: HttpServletResponse
+    ): ServiceResponse<UserResponseDto?> {
 
         val userCandidate: Optional<User> = userRepository.findByEmail(loginRequest.email!!)
 
@@ -77,13 +85,6 @@ class AuthController {
 
         if (userCandidate.isPresent) {
             val user: User = userCandidate.get()
-
-//            if (!user.enabled) {
-//                return ResponseEntity(
-//                    "Account is not verified yet! Please, follow the link in the confirmation email.",
-//                    HttpStatus.UNAUTHORIZED
-//                )
-//            }
 
             val authentication = authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(user.username, loginRequest.password)
@@ -104,16 +105,18 @@ class AuthController {
 //                        Collectors.toList<GrantedAuthority>()
 //                    )
             return ServiceResponse(
-                data = listOf(UserResponseDto(
-                    id = user.id,
-                    username = user.username,
-                    email = user.email,
-                    password = user.password,
-                    enabled = user.enabled,
-                    token = user.token,
-                    roles = user.roles,
-                    created = user.created
-                )),
+                data = listOf(
+                    UserResponseDto(
+                        id = user.id,
+                        username = user.username,
+                        email = user.email,
+                        password = user.password,
+                        enabled = user.enabled,
+                        token = user.token,
+                        roles = user.roles,
+                        created = user.created
+                    )
+                ),
                 status = HttpStatus.OK,
                 message = cookie.value
             )
@@ -125,6 +128,103 @@ class AuthController {
             )
         }
     }
+
+    @GetMapping("/recoverCode")
+    fun getRecoverCode(email: String): ServiceResponse<Int?> {
+        val userCandidate: Optional<User> = userRepository.findByEmail(email)
+        return if (userCandidate.isPresent) {
+            val user: User = userCandidate.get()
+            val code = recoveryCodeRepository.findByUser(user).get().code
+
+            emailService.sendRecoveryCode(user)
+            return ServiceResponse(
+                data = listOf(code),
+                status = HttpStatus.OK,
+                message = "code sent"
+            )
+        } else {
+            ServiceResponse(
+                data = listOf(null),
+                status = HttpStatus.BAD_REQUEST,
+                message = "User not found!"
+            )
+        }
+    }
+
+    @Transactional
+    @PostMapping("/recoverPasswordCode")
+    fun sendRecoverPassword(
+        @Valid @RequestParam email: String,
+        response: HttpServletResponse
+    ): ServiceResponse<String?> {
+        val userCandidate: Optional<User> = userRepository.findByEmail(email)
+        return if (userCandidate.isPresent) {
+            val user: User = userCandidate.get()
+            try {
+                emailService.sendRecoveryCode(user)
+                return ServiceResponse(
+                    data = listOf(null),
+                    status = HttpStatus.OK,
+                    message = "code sent"
+                )
+            } catch (e: Exception) {
+                return ServiceResponse(
+                    data = listOf(null),
+                    status = HttpStatus.BAD_REQUEST,
+                    message = "Error: ${e.message}"
+                )
+            }
+        } else {
+            ServiceResponse(
+                data = listOf(null),
+                status = HttpStatus.BAD_REQUEST,
+                message = "User not found!"
+            )
+        }
+    }
+
+    @GetMapping("/changePassword")
+    fun changeUserPassword(@Valid email: String, password: String): ServiceResponse<String> {
+        val userCandidate: Optional<User> = userRepository.findByEmail(email)
+
+        if (userCandidate.isPresent) {
+            try {
+                val temp = userCandidate.get()
+
+                val user = User(
+                    id = temp.id,
+                    username = temp.username!!,
+                    email = temp.email!!,
+                    password = encoder.encode(password),
+                    enabled = temp.enabled,
+                    token = temp.token,
+                    created = LocalDateTime.now()
+                )
+
+                userRepository.save(user)
+                return ServiceResponse(
+                    data = listOf("Password changed successfully"),
+                    status = HttpStatus.OK,
+                    message = ""
+                )
+            } catch (e: Exception) {
+                return ServiceResponse(
+                    data = listOf("Something wrong..."),
+                    status = HttpStatus.BAD_REQUEST,
+                    message = e.message.toString()
+                )
+            }
+        } else {
+            return ServiceResponse(
+                data = listOf("Something wrong..."),
+                status = HttpStatus.BAD_REQUEST,
+                message = "User not found"
+            )
+        }
+    }
+
+
+
 
     @PostMapping("/findUserByToken")
     fun findUserByToken(@RequestParam token: String): ServiceResponse<UserResponseDto> {
@@ -141,6 +241,7 @@ class AuthController {
         )
         ), status = HttpStatus.OK)
     }
+
 
     @PostMapping("/signup")
     fun registerUser(@Valid @RequestBody newUser: NewUser): ServiceResponse<UserResponseDto?> {
@@ -210,6 +311,7 @@ class AuthController {
         }
     }
 
+
     @PostMapping("/confirmEmail")
     fun confirmRegistration(@Valid @RequestParam token: String): String {
         val registeredUser = userRepository.findByToken(token).get()
@@ -218,10 +320,11 @@ class AuthController {
             emailService.sendRegistrationConfirmationEmail(registeredUser)
             "email confirmed"
         } catch (e: Exception){
-            "Erorr: ${e.message}"
+            "Error: ${e.message}"
         }
 
     }
+
 
     @GetMapping("/registrationConfirm")
     @CrossOrigin(origins = ["*"])
@@ -236,6 +339,7 @@ class AuthController {
 
         return ResponseEntity("Server error. Please, contact site owner", HttpStatus.SERVICE_UNAVAILABLE)
     }
+
 
     @PostMapping("/logout")
     fun logout(response: HttpServletResponse): ResponseEntity<*> {

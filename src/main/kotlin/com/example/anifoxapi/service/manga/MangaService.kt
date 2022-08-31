@@ -23,10 +23,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
-import java.awt.image.BufferedImage
-import java.io.File
-import java.net.URL
-import javax.imageio.ImageIO
 
 
 @Service
@@ -58,6 +54,29 @@ class MangaService: MangaRep {
         val light = mutableListOf<MangaLightResponse>()
         val manga = mangaRepository.findByTitle(query)
 
+        manga.forEach {
+            light.add(
+                MangaLightResponse(
+                    id = it.id,
+                    title = it.title,
+                    image = it.image,
+                    url = it.url,
+                    rate = it.rate,
+                    countRate = it.countRate,
+                    description = it.description
+                )
+            )
+        }
+
+        return light.toList()
+    }
+
+    override fun similarManga(id: Int, countCard: Int, page: Int): List<MangaLightResponse> {
+        val light = mutableListOf<MangaLightResponse>()
+        val temp = mangaRepository.findById(id).get()
+
+        val pageable: Pageable = PageRequest.of(page, countCard)
+        val manga = mangaRepository.findBySimilar(pageable, temp.genres.title)
         manga.forEach {
             light.add(
                 MangaLightResponse(
@@ -254,6 +273,7 @@ class MangaService: MangaRep {
                 ""
             }
 
+
             list = (
                 Manga(
                     id = maxId,
@@ -280,8 +300,8 @@ class MangaService: MangaRep {
                     countRate = rateCount.toInt(),
                 )
             )
-            mangaRepository.save(list)
-
+                println(list)
+                mangaRepository.save(list)
 
 
             println(list)

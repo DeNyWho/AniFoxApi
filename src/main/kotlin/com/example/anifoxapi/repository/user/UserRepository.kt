@@ -14,14 +14,12 @@ interface UserDetailsService : UserDetailsService {
     fun createVerificationTokenForUser(token: String, user: User)
 
     fun validateVerificationToken(token: String): String
+    fun createRecoverCodeForUser(code: Int, user: User)
+    fun changeUserPassword(email: String, password: String)
 }
 
 interface UserRepository: JpaRepository<User, Long> {
 
-//    @Query
-//    fun FindingById()
-
-    fun existsByUsername(@Param("username") username: String): Boolean
 
     fun findByUsername(@Param("username") username: String): Optional<User>
 
@@ -32,7 +30,5 @@ interface UserRepository: JpaRepository<User, Long> {
     @Query(value = "SELECT u FROM User u where u.email = :email")
     fun findByEmail(@Param("email") email: String): Optional<User>
 
-    @Transactional
-    fun deleteByUsername(@Param("username") username: String)
 
 }

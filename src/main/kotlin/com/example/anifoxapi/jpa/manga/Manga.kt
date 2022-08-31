@@ -20,6 +20,7 @@ data class Manga(
     var types: Types = Types(),
     @OneToOne(cascade = [CascadeType.ALL])
     var info: Info = Info(),
+    @JoinColumn(nullable = true)
     @OneToOne(cascade = [CascadeType.ALL])
     var chapters: Chapters = Chapters(),
     val chaptersCount: Int = 0,
@@ -28,24 +29,27 @@ data class Manga(
     @Column(name = "count_rate")
     var countRate: Int = 0,
 
+    @Column(nullable = true)
     @ManyToMany(
         fetch = FetchType.EAGER,
         mappedBy = "favouriteManga",
         cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]
     ) var users: MutableSet<User> = mutableSetOf(),
 
+    @Column(nullable = true)
     @ManyToMany(
         fetch = FetchType.EAGER,
         mappedBy = "watchingManga",
         cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]
     ) var watchMangaUsers: MutableSet<User> = mutableSetOf(),
-
+    @Column(nullable = true)
     @ManyToMany(
         fetch = FetchType.EAGER,
         mappedBy = "completedManga",
         cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]
     ) var completedMangaUsers: MutableSet<User> = mutableSetOf(),
 
+    @Column(nullable = true)
     @ManyToMany(
         fetch = FetchType.EAGER,
         mappedBy = "onHoldManga",
