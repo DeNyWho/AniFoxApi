@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import javax.validation.constraints.Max
+import javax.validation.constraints.Min
 
 
 @RestController
@@ -55,17 +57,17 @@ class MangaParserController {
     @GetMapping("")
     @Operation(summary = "Get manga")
     fun getManga(
-        @RequestParam page: Int,
-        @RequestParam countCard: Int,
-        status: String?,
-        order: String?,
-        genre: String?
+            @RequestParam(defaultValue = "1") pageNum: @Min(1) Int,
+            @RequestParam(defaultValue = "12") pageSize: @Min(1) @Max(500) Int,
+            status: String?,
+            order: String?,
+            genre: String?
     ): ServiceResponse<MangaLightResponse> {
         return try {
             val data = service.getManga(
-                countCard = countCard,
+                countCard = pageSize,
                 status = status,
-                page = page,
+                page = pageNum,
                 order = order,
                 genre = genre
             )
@@ -79,13 +81,13 @@ class MangaParserController {
     @GetMapping("similar/{id}")
     @Operation(summary = "TEST")
     fun similarManga(
-        @RequestParam page: Int,
-        @RequestParam countCard: Int,
-        @PathVariable id: Int
-    ): ServiceResponse<MangaLightResponse>{
+            @RequestParam(defaultValue = "1") pageNum: @Min(1) Int,
+            @RequestParam(defaultValue = "12") pageSize: @Min(1) @Max(500) Int,
+            @PathVariable id: Int
+    ): ServiceResponse<MangaLightResponse> {
         return try {
 
-            val data = service.similarManga(id = id, countCard = countCard, page = page)
+            val data = service.similarManga(id = id, countCard = pageSize, page = pageNum)
 
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
