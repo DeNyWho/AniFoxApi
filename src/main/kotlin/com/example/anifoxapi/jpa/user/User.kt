@@ -43,6 +43,9 @@ data class User (
         @Column(name = "created")
         var created: LocalDateTime? = null,
 
+        @Column(name = "recoverInstructions")
+        var recoverInstructions: Boolean = false,
+
         @ManyToMany(
                 fetch = FetchType.EAGER,
                 cascade = [CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH]

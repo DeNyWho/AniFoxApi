@@ -24,5 +24,5 @@ interface EmailRepository {
 
     fun sendRegistrationConfirmationEmail(user: User)
 
-    fun sendRecoveryCode(user: User)
+    fun sendCompletePasswordChange(user: User): String
 }

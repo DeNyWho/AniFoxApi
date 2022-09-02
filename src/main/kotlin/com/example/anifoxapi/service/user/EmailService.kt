@@ -118,13 +118,15 @@ class EmailService: EmailRepository {
         user.email?.let { sendHtmlMessage(user.email!!, "AniFox Security: Registration Confirmation", msg) }
     }
 
-    override fun sendRecoveryCode(user: User) {
-        val code = (1000..9999).random()
-
-
-        userService.createRecoverCodeForUser(code, user)
-        val msg = "<p>Hello, here is your code: </p><p>$code</p>"
-        user.email?.let{sendHtmlMessage(user.email!!, "AniFox Security: Registration Confirmation", msg)}
+    override fun sendCompletePasswordChange(user: User): String {
+        return try {
+            val link = "$hostUrl/api2/auth/confirmPasswordChange?token=${user.token}"
+            val msg = "<p>Please, follow the link to change your password:</p><p><a href=\"$link\">$link</a></p>"
+            user.email?.let { sendHtmlMessage(user.email!!, "AniFox Security: Change password confirmation", msg) }
+            "Message has been sent"
+        } catch (e: Exception){
+            "${e.message}"
+        }
     }
 
 }

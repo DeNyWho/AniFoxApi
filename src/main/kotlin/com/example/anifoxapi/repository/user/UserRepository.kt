@@ -14,7 +14,6 @@ interface UserDetailsService : UserDetailsService {
     fun createVerificationTokenForUser(token: String, user: User)
 
     fun validateVerificationToken(token: String): String
-    fun createRecoverCodeForUser(code: Int, user: User)
     fun changeUserPassword(email: String, password: String)
 }
 

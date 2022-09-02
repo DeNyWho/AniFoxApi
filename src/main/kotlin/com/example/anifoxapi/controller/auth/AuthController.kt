@@ -4,10 +4,8 @@ import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.jpa.user.UserResponseDto
 import com.example.anifoxapi.jwt.JwtProvider
 import com.example.anifoxapi.model.responses.ServiceResponse
-import com.example.anifoxapi.model.responses.SuccessfulSigninResponse
 import com.example.anifoxapi.model.user.LoginUser
 import com.example.anifoxapi.model.user.NewUser
-import com.example.anifoxapi.repository.user.RecoveryCodeRepository
 import com.example.anifoxapi.repository.user.RoleRepository
 import com.example.anifoxapi.repository.user.UserRepository
 import com.example.anifoxapi.service.user.EmailService
@@ -22,8 +20,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.ui.Model
@@ -31,11 +27,9 @@ import org.springframework.web.bind.annotation.*
 import java.io.UnsupportedEncodingException
 import java.time.LocalDateTime
 import java.util.*
-import java.util.stream.Collectors
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import javax.transaction.Transactional
 import javax.validation.Valid
 
 @RestController
@@ -54,9 +48,6 @@ class AuthController {
 
     @Autowired
     lateinit var userRepository: UserRepository
-
-    @Autowired
-    lateinit var recoveryCodeRepository: RecoveryCodeRepository
 
     @Autowired
     lateinit var roleRepository: RoleRepository
@@ -129,59 +120,75 @@ class AuthController {
         }
     }
 
-    @GetMapping("/recoverCode")
-    fun getRecoverCode(email: String): ServiceResponse<Int?> {
-        val userCandidate: Optional<User> = userRepository.findByEmail(email)
-        return if (userCandidate.isPresent) {
-            val user: User = userCandidate.get()
-            val code = recoveryCodeRepository.findByUser(user).get().code
+    @GetMapping("/confirmPasswordChange")
+    fun confirmPasswordChange(@RequestParam token: String): String {
+        val user = userRepository.findByToken(token).get()
 
-            emailService.sendRecoveryCode(user)
-            return ServiceResponse(
-                data = listOf(code),
-                status = HttpStatus.OK,
-                message = "code sent"
+        userRepository.save(
+            User(
+                id = user.id,
+                password = user.password,
+                username = user.username,
+                email = user.email,
+                enabled = user.enabled,
+                token = user.token,
+                roles = user.roles,
+                created = user.created,
+                recoverInstructions = true,
+                favouriteManga = user.favouriteManga,
+                watchingManga = user.watchingManga,
+                completedManga = user.completedManga,
+                onHoldManga = user.onHoldManga
             )
-        } else {
-            ServiceResponse(
-                data = listOf(null),
-                status = HttpStatus.BAD_REQUEST,
-                message = "User not found!"
-            )
-        }
+        )
+
+        return "Теперь вам нужно вернуться в приложение, чтобы продолжить смену пароля"
     }
 
-    @Transactional
-    @PostMapping("/recoverPasswordCode")
-    fun sendRecoverPassword(
-        @Valid @RequestParam email: String,
-        response: HttpServletResponse
-    ): ServiceResponse<String?> {
+    @PostMapping("/sendRecoverInstructions")
+    fun sendRecoverInstructions(@Valid @RequestParam email: String): ServiceResponse<String>{
         val userCandidate: Optional<User> = userRepository.findByEmail(email)
-        return if (userCandidate.isPresent) {
-            val user: User = userCandidate.get()
-            try {
-                emailService.sendRecoveryCode(user)
-                return ServiceResponse(
-                    data = listOf(null),
-                    status = HttpStatus.OK,
-                    message = "code sent"
-                )
-            } catch (e: Exception) {
-                return ServiceResponse(
-                    data = listOf(null),
-                    status = HttpStatus.BAD_REQUEST,
-                    message = "Error: ${e.message}"
+        return if(userCandidate.isPresent){
+            val user = userCandidate.get()
+            if(user.recoverInstructions){
+                userRepository.save(
+                    User(
+                        id = user.id,
+                        username = user.username,
+                        email = user.email,
+                        password = user.password,
+                        enabled = user.enabled,
+                        token = user.token,
+                        roles = user.roles,
+                        created = user.created,
+                        recoverInstructions = false,
+                        favouriteManga = user.favouriteManga,
+                        watchingManga = user.watchingManga,
+                        completedManga = user.completedManga,
+                        onHoldManga = user.onHoldManga
+
+                    )
                 )
             }
+
+            val success = emailService.sendCompletePasswordChange(user)
+
+
+            ServiceResponse(
+                data = listOf(success),
+                status = HttpStatus.OK,
+                message = "Everything is fine"
+            )
+
         } else {
             ServiceResponse(
-                data = listOf(null),
+                data = listOf("Error (Check message)"),
                 status = HttpStatus.BAD_REQUEST,
                 message = "User not found!"
             )
         }
     }
+
 
     @GetMapping("/changePassword")
     fun changeUserPassword(@Valid email: String, password: String): ServiceResponse<String> {
@@ -190,23 +197,31 @@ class AuthController {
         if (userCandidate.isPresent) {
             try {
                 val temp = userCandidate.get()
+                if(temp.recoverInstructions) {
 
-                val user = User(
-                    id = temp.id,
-                    username = temp.username!!,
-                    email = temp.email!!,
-                    password = encoder.encode(password),
-                    enabled = temp.enabled,
-                    token = temp.token,
-                    created = LocalDateTime.now()
-                )
+                    val user = User(
+                        id = temp.id,
+                        username = temp.username!!,
+                        email = temp.email!!,
+                        password = encoder.encode(password),
+                        enabled = temp.enabled,
+                        token = temp.token,
+                        created = LocalDateTime.now()
+                    )
 
-                userRepository.save(user)
-                return ServiceResponse(
-                    data = listOf("Password changed successfully"),
-                    status = HttpStatus.OK,
-                    message = ""
-                )
+                    userRepository.save(user)
+                    return ServiceResponse(
+                        data = listOf("Password changed successfully"),
+                        status = HttpStatus.OK,
+                        message = ""
+                    )
+                } else {
+                    return ServiceResponse(
+                        data = listOf("You need to confirm the password change by email"),
+                        status = HttpStatus.OK,
+                        message = ""
+                    )
+                }
             } catch (e: Exception) {
                 return ServiceResponse(
                     data = listOf("Something wrong..."),
