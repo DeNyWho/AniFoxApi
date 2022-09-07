@@ -76,8 +76,16 @@ class MangaService: MangaRep {
         val temp = mangaRepository.findById(id).get()
 
         val pageable: Pageable = PageRequest.of(page, countCard)
-        val manga = mangaRepository.findBySimilar(pageable, temp.genres.title)
-        manga.forEach {
+        val list = mangaRepository.findBySimilar(pageable, temp.genres.title)
+
+
+        val temping = mutableListOf<Manga>()
+
+        for (i in list.indices){
+            temping.add(mangaRepository.findByGenreID(list[i]))
+        }
+
+        temping.forEach {
             light.add(
                 MangaLightResponse(
                     id = it.id,
@@ -254,6 +262,40 @@ class MangaService: MangaRep {
                 }
             }
 
+//            // Like page
+//
+//            val like = mutableListOf<LikeManga>()
+//
+//            skrape(HttpFetcher) {
+//                request {
+//                    url = "${link[i]}/like"
+//                }
+//                response {
+//                    try {
+//                        //likes manga
+//                        document.a {
+//                            try {
+//                                withClass = "comic-slide-name.mt-3"
+//                                like.add(LikeManga(id = maxId.toLong(), title = findAll { return@findAll eachText }))
+//                                urlsSlides =
+//                                    findAll { return@findAll eachHref }.map { "\"https://mangahub.ru/$it?page=1" }
+//                                urlsTitles = findAll { return@findAll eachText }
+//                            } catch (e: Exception) {
+//
+//                                withClass = "text-muted.text-center.fw-medium.py-4"
+//                                urlsSlides = emptyList()
+//                            }
+//                        }
+//                        document.div {
+//                            withClass = "detail-chapter-date.ms-2.text-muted"
+//                            urlsDates = findAll { return@findAll eachText }
+//                        }
+//                    } catch (e: Exception){
+//
+//                    }
+//                }
+//            }
+
             val tempList = types.split(" ")
             println(link)
             println(tempList)
@@ -272,6 +314,8 @@ class MangaService: MangaRep {
             } else {
                 ""
             }
+
+
 
 
             list = (
@@ -377,6 +421,12 @@ class MangaService: MangaRep {
             MangaResponseDto()
         }
     }
+
+//    override fun tester(): List<String>{
+//        val driver = setWebDriver("https://mangahub.ru/title/tokyo_ghoul_2011/like")
+//
+//
+//    }
 
     override fun readMangaByLink(url: String): List<String> {
         val driver = setWebDriver(url)

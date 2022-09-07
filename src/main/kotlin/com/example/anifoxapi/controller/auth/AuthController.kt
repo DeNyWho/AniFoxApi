@@ -121,7 +121,7 @@ class AuthController {
     }
 
     @GetMapping("/confirmPasswordChange")
-    fun confirmPasswordChange(@RequestParam token: String): String {
+    fun confirmPasswordChange(@RequestParam token: String): ServiceResponse<String> {
         val user = userRepository.findByToken(token).get()
 
         userRepository.save(
@@ -142,8 +142,35 @@ class AuthController {
             )
         )
 
-        return "Теперь вам нужно вернуться в приложение, чтобы продолжить смену пароля"
+        emailService.sendConfirmationPasswordMess(user)
+
+        return ServiceResponse(
+            data = listOf("Password confirmed"),
+            status = HttpStatus.OK,
+            message = "Everything is fine"
+        )
+
     }
+
+    @GetMapping("/confirmationPassword")
+    fun confirmationPassword(email: String): ServiceResponse<UserResponseDto?> {
+        val user = userRepository.findByEmail(email).get()
+
+        return if (user.recoverInstructions == false) ServiceResponse(data = listOf(UserResponseDto(
+            id = user.id,
+            username = user.username,
+            email = user.email,
+            password = user.password,
+            enabled = user.enabled,
+            token = user.token,
+            roles = user.roles,
+            created = user.created
+        )
+        ), status = HttpStatus.OK)
+        else ServiceResponse(data = null,status = HttpStatus.BAD_REQUEST, message = "SomethingWrong")
+
+    }
+
 
     @PostMapping("/sendRecoverInstructions")
     fun sendRecoverInstructions(@Valid @RequestParam email: String): ServiceResponse<String>{
@@ -302,6 +329,7 @@ class AuthController {
                     message = "${e.message}"
                 )
             }
+            emailService.sendHelloMessage(user, newUser.password!!)
 
             return ServiceResponse(
                 data = listOf(UserResponseDto(

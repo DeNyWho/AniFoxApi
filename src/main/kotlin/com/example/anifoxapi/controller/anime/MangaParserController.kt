@@ -57,8 +57,8 @@ class MangaParserController {
     @GetMapping("")
     @Operation(summary = "Get manga")
     fun getManga(
-            @RequestParam(defaultValue = "1") pageNum: @Min(1) Int,
-            @RequestParam(defaultValue = "12") pageSize: @Min(1) @Max(500) Int,
+            pageNum: Int,
+            pageSize: Int,
             status: String?,
             order: String?,
             genre: String?

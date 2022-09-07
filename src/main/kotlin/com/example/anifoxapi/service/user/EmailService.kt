@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring5.SpringTemplateEngine
 import java.io.File
-import java.util.*
 import javax.mail.MessagingException
 
 @Service
@@ -111,11 +110,31 @@ class EmailService: EmailRepository {
         }
     }
 
+    override fun sendHelloMessage(user: User, password: String): String{
+        return try {
+            val msg = "<b><p>Registration Success</p></b><p>Great, you have successfully registered a AniFox account.</p><p>You can log in your account with the email: <b>${user.email}</b> and password: <b>$password</b>"
+            user.email?.let { sendHtmlMessage(user.email!!, "AniFox Company: Hello", msg) }
+            "Message has been sent"
+        } catch (e: Exception){
+            "${e.message}"
+        }
+    }
+
     override fun sendRegistrationConfirmationEmail(user: User) {
         userService.createVerificationTokenForUser(user.token!!, user)
         val link = "$hostUrl/api2/auth/registrationConfirm?token=${user.token}"
         val msg = "<p>Please, follow the link to complete your registration:</p><p><a href=\"$link\">$link</a></p>"
         user.email?.let { sendHtmlMessage(user.email!!, "AniFox Security: Registration Confirmation", msg) }
+    }
+
+    override fun sendConfirmationPasswordMess(user: User): String{
+        return try {
+            val msg = "<p>Password confirmation received. Go back to the app to change your password.</p>"
+            user.email?.let { sendHtmlMessage(user.email!!, "AniFox Security: Change password confirmation", msg) }
+            "Message has been sent"
+        } catch (e: Exception){
+            "${e.message}"
+        }
     }
 
     override fun sendCompletePasswordChange(user: User): String {
