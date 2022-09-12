@@ -26,6 +26,8 @@ repositories {
 //extra["springBootAdminVersion"] = "2.7.1"
 
 dependencies {
+
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("org.springframework.boot:spring-boot-starter-actuator:2.1.3.RELEASE")
     implementation("org.springframework.boot:spring-boot-starter-web:2.1.3.RELEASE")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:2.1.3.RELEASE")

@@ -2,6 +2,9 @@ package com.example.anifoxapi.service.user
 
 import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.repository.user.EmailRepository
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
@@ -119,6 +122,18 @@ class EmailService: EmailRepository {
             "${e.message}"
         }
     }
+
+    override fun sendSignInMessage(user: User): String{
+        return try {
+            val time = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+            val msg = "<b><p>We noticed that someone logged into your account on ${time.dayOfMonth} ${time.month} at ${time.hour}:${time.minute}</p></b><p>If it wasn't you, then urgently change the password in our AniFox mobile!"
+            user.email?.let { sendHtmlMessage(user.email!!, "AniFox Security: Someone logged into your account", msg) }
+            "Message has been sent"
+        } catch (e: Exception){
+            "${e.message}"
+        }
+    }
+
 
     override fun sendRegistrationConfirmationEmail(user: User) {
         userService.createVerificationTokenForUser(user.token!!, user)

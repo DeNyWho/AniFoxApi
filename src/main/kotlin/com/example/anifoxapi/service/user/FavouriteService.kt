@@ -3,10 +3,13 @@ package com.example.anifoxapi.service.user
 import com.example.anifoxapi.model.PageableData
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.responses.PageableResponse
+import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.model.user.FavouriteDto
 import com.example.anifoxapi.repository.manga.MangaRepository
 import com.example.anifoxapi.repository.user.UserRepository
+import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 
@@ -54,19 +57,30 @@ class FavouriteService(
         )
     }
 
-    fun addFavourite(dto: FavouriteDto, status: String) {
+    fun addFavourite(dto: FavouriteDto, status: String): ServiceResponse<Boolean> {
         val manga = mangaRepository.findById(dto.mangaId).get()
-        val user = userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
-            .addToFavourite(manga)
-        when(status){
-            "holdOn" -> userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
-                .addToOnHold(manga)
-            "watching" -> userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
-                .addToWatching(manga)
-            "completed" -> userRepository.findByToken(dto.token).orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
-                .addToCompleted(manga)
+        return try {
+            val user = userRepository.findByToken(dto.token)
+                .orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
+                .addToFavourite(manga)
+            when (status) {
+                "holdOn" -> userRepository.findByToken(dto.token)
+                    .orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
+                    .addToOnHold(manga)
+                "watching" -> userRepository.findByToken(dto.token)
+                    .orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
+                    .addToWatching(manga)
+                "completed" -> userRepository.findByToken(dto.token)
+                    .orElseThrow { UsernameNotFoundException("No user found by this token: ${dto.token}") }
+                    .addToCompleted(manga)
+            }
+            userRepository.save(user)
+            ServiceResponse(data = listOf(true), status = HttpStatus.OK, message = "Everything is fine")
+        } catch (e: Exception){
+            ServiceResponse(data = listOf(false), status = HttpStatus.BAD_REQUEST, message = e.message.toString())
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
         }
-        userRepository.save(user)
     }
 
     fun removeFavourite(dto: FavouriteDto) {

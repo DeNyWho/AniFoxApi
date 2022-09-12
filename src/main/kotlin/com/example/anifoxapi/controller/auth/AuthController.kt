@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.ui.Model
@@ -76,41 +77,71 @@ class AuthController {
 
         if (userCandidate.isPresent) {
             val user: User = userCandidate.get()
+            val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(user.username, loginRequest.password)
 
-            val authentication = authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(user.username, loginRequest.password)
-            )
-            SecurityContextHolder.getContext().authentication = authentication
-            val jwt: String = jwtProvider.generateJwtToken(user.username!!)
+            if(!usernamePasswordAuthenticationToken.isAuthenticated) {
 
-            val cookie = Cookie(authCookieName, jwt)
-            cookie.maxAge = jwtProvider.jwtExpiration!!
-            cookie.secure = isCookieSecure
-            cookie.isHttpOnly = true
-            cookie.path = "/"
-            response.addCookie(cookie)
+                try {
+                    val auth = authenticationManager.authenticate(usernamePasswordAuthenticationToken)
+                } catch (e: Exception){
+                    if(e.message.toString() == "Bad credentials"){
+                        return ServiceResponse(
+                            data = null,
+                            status = HttpStatus.OK,
+                            message = "Wrong login or password"
+                        )
+                    }
+                }
+                val auth = authenticationManager.authenticate(usernamePasswordAuthenticationToken)
+                if(auth.isAuthenticated) {
+                    SecurityContextHolder.getContext().authentication = auth
+                    val jwt: String = jwtProvider.generateJwtToken(user.username!!)
+
+                    val cookie = Cookie(authCookieName, jwt)
+                    cookie.maxAge = jwtProvider.jwtExpiration!!
+                    cookie.secure = isCookieSecure
+                    cookie.isHttpOnly = true
+                    cookie.path = "/"
+                    response.addCookie(cookie)
 
 //            val authorities: List<GrantedAuthority> =
 //                user.roles!!.stream().map { role -> SimpleGrantedAuthority(role.name) }
 //                    .collect(
 //                        Collectors.toList<GrantedAuthority>()
 //                    )
-            return ServiceResponse(
-                data = listOf(
-                    UserResponseDto(
-                        id = user.id,
-                        username = user.username,
-                        email = user.email,
-                        password = user.password,
-                        enabled = user.enabled,
-                        token = user.token,
-                        roles = user.roles,
-                        created = user.created
+
+                    emailService.sendSignInMessage(user = user)
+                    return ServiceResponse(
+                        data = listOf(
+                            UserResponseDto(
+                                id = user.id,
+                                username = user.username,
+                                email = user.email,
+                                password = user.password,
+                                enabled = user.enabled,
+                                token = user.token,
+                                roles = user.roles,
+                                created = user.created
+                            )
+                        ),
+                        status = HttpStatus.OK,
+                        message = cookie.value
                     )
-                ),
-                status = HttpStatus.OK,
-                message = cookie.value
-            )
+                }
+                else {
+                    return ServiceResponse(
+                        data = null,
+                        status = HttpStatus.OK,
+                        message = "Smth going wrong"
+                    )
+                }
+            } else {
+                return ServiceResponse(
+                    data = null,
+                    status = HttpStatus.OK,
+                    message = "User have auth"
+                )
+            }
         } else {
             return ServiceResponse(
                 data = null,
@@ -284,26 +315,47 @@ class AuthController {
         ), status = HttpStatus.OK)
     }
 
+    @PostMapping("/findUserByUserName")
+    fun findUserByUserName(@RequestParam name: String): ServiceResponse<Boolean> {
+        val userCandidate: Optional<User> = userRepository.findByUsername(name)
+        return if(!userCandidate.isPresent) {
+            ServiceResponse(
+                data = listOf(true),
+                status = HttpStatus.OK,
+                message = "Everything is fine"
+            )
+        } else ServiceResponse(
+            data = listOf(false),
+            status = HttpStatus.BAD_REQUEST,
+            message = "This username already exists!"
+        )
+    }
+
 
     @PostMapping("/signup")
     fun registerUser(@Valid @RequestBody newUser: NewUser): ServiceResponse<UserResponseDto?> {
 
-        val userCandidate: Optional<User> = userRepository.findByUsername(newUser.username!!)
+        val userCandidate: Optional<User> = userRepository.findByEmail(newUser.email!!)
 
-        if (!userCandidate.isPresent) {
-            if (usernameExists(newUser.username!!)) {
-                return ServiceResponse(
-                    data = null,
-                    status = HttpStatus.BAD_REQUEST,
-                    message = "Username is already taken!"
-                )
-            } else if (emailExists(newUser.email!!)) {
-                return ServiceResponse(
-                    data = null,
-                    status = HttpStatus.BAD_REQUEST,
-                    message = "Email is already in use!"
-                )
-            }
+        if(usernameExists(newUser.username!!) && emailExists(newUser.email!!)){
+            return ServiceResponse(
+                data = null,
+                status = HttpStatus.BAD_REQUEST,
+                message = "Username and email is already taken!"
+            )
+        } else if (usernameExists(newUser.username!!)) {
+            return ServiceResponse(
+                data = null,
+                status = HttpStatus.BAD_REQUEST,
+                message = "This username already exists!"
+            )
+        } else if (emailExists(newUser.email!!)) {
+            return ServiceResponse(
+                data = null,
+                status = HttpStatus.BAD_REQUEST,
+                message = "This email already exists!"
+            )
+        } else if (!userCandidate.isPresent) {
             val token = UUID.randomUUID().toString()
             var user: User = User()
             try {
@@ -349,7 +401,7 @@ class AuthController {
             return ServiceResponse(
                 data = null,
                 status = HttpStatus.BAD_REQUEST,
-                message = "User already exists!"
+                message = "This email already exists!"
             )
         }
     }
@@ -397,7 +449,7 @@ class AuthController {
     }
 
     private fun emailExists(email: String): Boolean {
-        return userRepository.findByUsername(email).isPresent
+        return userRepository.findByEmail(email).isPresent
     }
 
     private fun usernameExists(username: String): Boolean {

@@ -3,6 +3,7 @@ package com.example.anifoxapi.controller.user
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.responses.BasicResponse
 import com.example.anifoxapi.model.responses.PageableResponse
+import com.example.anifoxapi.model.responses.ServiceResponse
 import com.example.anifoxapi.model.user.FavouriteDto
 import com.example.anifoxapi.service.user.FavouriteService
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -20,9 +21,8 @@ class UserController {
     lateinit var favouriteService: FavouriteService
 
     @PostMapping("favourite/add")
-    fun addFavourite(@RequestBody dto: FavouriteDto, @RequestParam status: String ): BasicResponse<Void> {
-        favouriteService.addFavourite(dto, status)
-        return BasicResponse()
+    fun addFavourite(@RequestBody dto: FavouriteDto, @RequestParam status: String): ServiceResponse<Boolean> {
+        return favouriteService.addFavourite(dto, status)
     }
 
     @PostMapping("favourite/remove")
