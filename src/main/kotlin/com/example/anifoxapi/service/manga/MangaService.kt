@@ -10,6 +10,7 @@ import it.skrape.core.document
 import it.skrape.fetcher.HttpFetcher
 import it.skrape.fetcher.response
 import it.skrape.fetcher.skrape
+import it.skrape.selects.DocElement
 import it.skrape.selects.eachAttribute
 import it.skrape.selects.eachHref
 import it.skrape.selects.eachText
@@ -128,20 +129,20 @@ class MangaService: MangaRep {
         }
 
         for ( i in 1 until 7) {
-            println(i)
+
             skrape(HttpFetcher) {
                 request {
                     url = "https://mangahub.ru/explore/type-is-nor-comix/genres-is-nor-erotica/sort-is-date?page=$i"
                 }
                 response {
                     //title
-                    document.a {
-                        withClass = "comic-grid-name"
+                    document.div {
+                        withClass = "text-line-clamp.mt-2"
                         titles.addAll(findAll{ return@findAll eachText})
                     }
                     //urls
                     document.a {
-                        withClass = "d-block.position-relative"
+                        withClass = "d-block.rounded.fast-view-layer"
                         urls.addAll(findAll{ return@findAll eachHref}.map { "https://mangahub.ru$it"} )
                     }
                     //image
@@ -167,7 +168,7 @@ class MangaService: MangaRep {
             var rate = ""
             var rateCount = ""
             var views = ""
-
+            var countLikes = 0
 
             skrape(HttpFetcher) {
                 request {
@@ -176,6 +177,12 @@ class MangaService: MangaRep {
                 response {
                     // description
                     try {
+                        val b = mutableListOf<String>()
+                        document.div {
+                            withClass = "detail-section-header"
+                            b.addAll(findAll { return@findAll eachText })
+                        }
+                        countLikes = b[3].takeLast(2).toInt()
                         document.div {
                             withClass = "markdown-style.text-expandable-content"
                             description = findFirst { return@findFirst text }
@@ -214,14 +221,14 @@ class MangaService: MangaRep {
 
                     //rate
                     document.span {
-                        withClass = "fw-bold.fs-2.fs-lg-5"
+                        withClass = "rating-star-rate"
                         rate = findFirst{ return@findFirst text }
                         println(rate)
                     }
 
                     //rate count
                     document.span {
-                        withClass = "fw-normal.fs-0.text-muted"
+                        withClass = "rating-star-votes"
                         rateCount = findFirst { return@findFirst text }
                     }
 
@@ -233,6 +240,9 @@ class MangaService: MangaRep {
 
                 }
             }
+
+            // chapters page
+
             skrape(HttpFetcher) {
                 request {
                     url = link.replace("title","chapters")
@@ -262,43 +272,38 @@ class MangaService: MangaRep {
                 }
             }
 
-//            // Like page
-//
-//            val like = mutableListOf<LikeManga>()
-//
-//            skrape(HttpFetcher) {
-//                request {
-//                    url = "${link[i]}/like"
-//                }
-//                response {
-//                    try {
-//                        //likes manga
-//                        document.a {
-//                            try {
-//                                withClass = "comic-slide-name.mt-3"
-//                                like.add(LikeManga(id = maxId.toLong(), title = findAll { return@findAll eachText }))
-//                                urlsSlides =
-//                                    findAll { return@findAll eachHref }.map { "\"https://mangahub.ru/$it?page=1" }
-//                                urlsTitles = findAll { return@findAll eachText }
-//                            } catch (e: Exception) {
-//
-//                                withClass = "text-muted.text-center.fw-medium.py-4"
-//                                urlsSlides = emptyList()
-//                            }
-//                        }
-//                        document.div {
-//                            withClass = "detail-chapter-date.ms-2.text-muted"
-//                            urlsDates = findAll { return@findAll eachText }
-//                        }
-//                    } catch (e: Exception){
-//
-//                    }
-//                }
-//            }
+            // like page
+            val temping = mutableListOf<String>()
+            val linked = mutableListOf<String>()
+
+            skrape(HttpFetcher) {
+                request {
+                    url = "$link/like"
+                }
+                response {
+
+                    val elements = document.allElements.filter { it.className.contains("scroller-item me-3") }
+                    val c = mutableListOf<String>()
+                    val d = mutableListOf<DocElement>()
+
+                    elements.forEach {
+                        c.addAll(it.div { withClass = "text-line-clamp.mt-2"
+                            findAll{ return@findAll eachText} }
+                        )
+                        d.addAll(it.allElements.filter { it.className == "mt-2" })
+                    }
+
+
+                    for (r in 0 until countLikes){
+                        temping.add(c[r])
+                    }
+
+                    linked.addAll(c.takeLast(d.size))
+                }
+            }
 
             val tempList = types.split(" ")
-            println(link)
-            println(tempList)
+
             val type = tempList[0]
             var yearDK = 0
             val year = try {
@@ -314,9 +319,6 @@ class MangaService: MangaRep {
             } else {
                 ""
             }
-
-
-
 
             list = (
                 Manga(
@@ -342,17 +344,18 @@ class MangaService: MangaRep {
                     chaptersCount = urlsTitles.size,
                     rate = rate.toDouble(),
                     countRate = rateCount.toInt(),
+                    likeManga = LikeManga(title = temping),
+                    linked = Linked(title = linked)
                 )
             )
-                println(list)
-                mangaRepository.save(list)
 
+            mangaRepository.save(list)
 
-            println(list)
             maxId = maxId -  1
 
 
         }
+
         return list
     }
 

@@ -28,7 +28,11 @@ data class Manga(
     var rate: Double = 0.0,
     @Column(name = "count_rate")
     var countRate: Int = 0,
-
+    @JoinColumn(nullable = true)
+    @OneToOne(cascade = [CascadeType.ALL])
+    var likeManga: LikeManga = LikeManga(),
+    @OneToOne(cascade = [CascadeType.ALL])
+    var linked: Linked = Linked(),
     @Column(nullable = true)
     @ManyToMany(
         fetch = FetchType.EAGER,
