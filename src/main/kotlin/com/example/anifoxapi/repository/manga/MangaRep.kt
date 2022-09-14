@@ -1,5 +1,7 @@
 package com.example.anifoxapi.repository.manga
 
+import com.example.anifoxapi.jpa.manga.LikeManga
+import com.example.anifoxapi.jpa.manga.Linked
 import com.example.anifoxapi.jpa.manga.Manga
 import com.example.anifoxapi.jpa.manga.MangaResponseDto
 import com.example.anifoxapi.jpa.user.User
@@ -23,7 +25,9 @@ interface MangaRep {
     fun addDataToDB(): Manga
     fun getMangaFromDB(id: Int): MangaResponseDto
     fun getManga(countCard: Int, status: String?, page: Int, order: String?, genre: String?): List<MangaLightResponse>
-    fun similarManga(id: Int, countCard: Int, page: Int): List<MangaLightResponse>
+
+    fun similarManga(id: Int): List<MangaLightResponse>
+    fun linkedManga(id: Int): List<MangaLightResponse>
 }
 
 
@@ -47,8 +51,11 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
     @Query(value = "Select u From Manga u where u.types.status = :status and :title member of u.genres.title")
     fun findByStatusAndGenre(pageable: Pageable, @Param("status") status: String, @Param("title") genre: String): Page<Manga>
 
-    @Query (value = "SELECT u.id FROM Genres u WHERE u.title IN :title group by u.id order by count(u.id) desc")
-    fun findBySimilar(pageable: Pageable, @Param("title") genre: List<String>  ): List<String>
+    @Query(value = "Select u From LikeManga u where u.manga_id = :mangaID")
+    fun findByLikeManga(@Param("mangaID") mangaID: Long): LikeManga
+
+    @Query(value = "Select u From Linked u where u.id = :mangaID")
+    fun findByLinkedManga(@Param("mangaID") mangaID: Long): Linked
 
     @Query(value = "SELECT u FROM Manga u WHERE u.genres.id = :id")
     fun findByGenreID(@Param("id") id: String ): Manga
@@ -59,7 +66,10 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
     fun findByRandom(pageable: Pageable): Page<Manga>
 
     @Query(value = "SELECT u FROM Manga u where u.title LIKE %?1%")
-    fun findByTitle(@Param("title") title: String): List<Manga>
+    fun findByTitleSearch(@Param("title") title: String): List<Manga>
+
+    @Query(value = "SELECT u FROM Manga u where u.title = :title")
+    fun findByTitle(@Param("title") title: String): Manga
 
 }
 

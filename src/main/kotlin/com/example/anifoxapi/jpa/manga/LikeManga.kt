@@ -6,9 +6,9 @@ import javax.persistence.*
 @Entity
 @Table(name="likeManga")
 data class LikeManga(
+    @Column(name = "manga_id")
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    val id: Long? = 0,
+    val manga_id: Long? = 0,
 
     @Column(columnDefinition = "TEXT")
     @ElementCollection

@@ -6,7 +6,6 @@ import javax.persistence.*
 @Table(name="linked")
 data class Linked (
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long? = 0,
 
     @ElementCollection

@@ -1,6 +1,5 @@
 package com.example.anifoxapi.controller.anime
 
-import com.example.anifoxapi.jpa.manga.Manga
 import com.example.anifoxapi.jpa.manga.MangaResponseDto
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.responses.ServiceResponse
@@ -18,7 +17,7 @@ import javax.validation.constraints.Min
 @RestController
 @Tag(name = "MangaApi", description = "All about manga")
 @RequestMapping("/api2/manga/")
-class MangaParserController {
+class MangaController {
 
     @Autowired
     lateinit var service: MangaService
@@ -79,15 +78,28 @@ class MangaParserController {
     }
 
     @GetMapping("similar/{id}")
-    @Operation(summary = "TEST")
+    @Operation(summary = "Get similar of manga")
     fun similarManga(
-            @RequestParam(defaultValue = "1") pageNum: @Min(1) Int,
-            @RequestParam(defaultValue = "12") pageSize: @Min(1) @Max(500) Int,
             @PathVariable id: Int
     ): ServiceResponse<MangaLightResponse> {
         return try {
 
-            val data = service.similarManga(id = id, countCard = pageSize, page = pageNum)
+            val data = service.similarManga(id = id)
+
+            return ServiceResponse(data = data, status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        }
+    }
+
+    @GetMapping("linked/{id}")
+    @Operation(summary = "Get linked of manga")
+    fun linkedManga(
+            @PathVariable id: Int
+    ): ServiceResponse<MangaLightResponse> {
+        return try {
+
+            val data = service.linkedManga(id = id)
 
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {

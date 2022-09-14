@@ -43,7 +43,7 @@ class MangaService: MangaRep {
             chaptersCount = manga.chaptersCount,
             views = manga.views,
             rate = manga.rate,
-            countRate = manga.countRate
+            countRate = manga.countRate,
         )
     }
 
@@ -53,7 +53,7 @@ class MangaService: MangaRep {
     override fun search(query: String): List<MangaLightResponse> {
 
         val light = mutableListOf<MangaLightResponse>()
-        val manga = mangaRepository.findByTitle(query)
+        val manga = mangaRepository.findByTitleSearch(query)
 
         manga.forEach {
             light.add(
@@ -72,32 +72,67 @@ class MangaService: MangaRep {
         return light.toList()
     }
 
-    override fun similarManga(id: Int, countCard: Int, page: Int): List<MangaLightResponse> {
+    override fun similarManga(id: Int): List<MangaLightResponse> {
         val light = mutableListOf<MangaLightResponse>()
-        val temp = mangaRepository.findById(id).get()
 
-        val pageable: Pageable = PageRequest.of(page, countCard)
-        val list = mangaRepository.findBySimilar(pageable, temp.genres.title)
+        val list = mangaRepository.findByLikeManga(id.toLong())
+        val mangas = mutableListOf<Manga>()
 
+        for(i in 0 until list.title.size){
+            try {
+                mangas.add(mangaRepository.findByTitle(list.title[i]))
+            } catch (e: Exception){
 
-        val temping = mutableListOf<Manga>()
-
-        for (i in list.indices){
-            temping.add(mangaRepository.findByGenreID(list[i]))
+            }
         }
 
-        temping.forEach {
-            light.add(
-                MangaLightResponse(
-                    id = it.id,
-                    title = it.title,
-                    image = it.image,
-                    url = it.url,
-                    rate = it.rate,
-                    countRate = it.countRate,
-                    description = it.description
+        if(mangas.size > 0){
+            mangas.forEach {
+                light.add(
+                    MangaLightResponse(
+                        id = it.id,
+                        title = it.title,
+                        image = it.image,
+                        url = it.url,
+                        rate = it.rate,
+                        countRate = it.countRate,
+                        description = it.description
+                    )
                 )
-            )
+            }
+        }
+
+        return light.toList()
+    }
+
+    override fun linkedManga(id: Int): List<MangaLightResponse> {
+        val light = mutableListOf<MangaLightResponse>()
+
+        val list = mangaRepository.findByLinkedManga(id.toLong())
+        val mangas = mutableListOf<Manga>()
+
+        for(i in 0 until list.title.size){
+            try {
+                mangas.add(mangaRepository.findByTitle(list.title[i]))
+            } catch (e: Exception){
+
+            }
+        }
+
+        if(mangas.size > 0){
+            mangas.forEach {
+                light.add(
+                    MangaLightResponse(
+                        id = it.id,
+                        title = it.title,
+                        image = it.image,
+                        url = it.url,
+                        rate = it.rate,
+                        countRate = it.countRate,
+                        description = it.description
+                    )
+                )
+            }
         }
 
         return light.toList()
@@ -193,7 +228,10 @@ class MangaService: MangaRep {
                     //genres
                     document.a {
                         withClass = "tag.fw-medium"
-                        genres = Genres(title = findAll { return@findAll eachText }.map { it.replace("#","") })
+                        genres = Genres(
+                            id = maxId.toLong(),
+                            title = findAll { return@findAll eachText }.map { it.replace("#","") }
+                        )
                     }
 
                     // views
@@ -233,6 +271,7 @@ class MangaService: MangaRep {
                     }
 
                     info = Info(
+                        id = maxId.toLong(),
                         name = typesName,
                         value = typesValue
                     )
@@ -329,6 +368,7 @@ class MangaService: MangaRep {
                     description = description,
                     genres = genres,
                     types = Types(
+                        id = maxId.toLong(),
                         type = type,
                         year = year,
                         status = status,
@@ -337,6 +377,7 @@ class MangaService: MangaRep {
                     views = views.toInt(),
                     info = info,
                     chapters = Chapters(
+                        id = maxId.toLong(),
                         title = urlsTitles,
                         url = urlsSlides,
                         date = urlsDates
@@ -344,8 +385,8 @@ class MangaService: MangaRep {
                     chaptersCount = urlsTitles.size,
                     rate = rate.toDouble(),
                     countRate = rateCount.toInt(),
-                    likeManga = LikeManga(title = temping),
-                    linked = Linked(title = linked)
+                    likeManga = LikeManga(manga_id = maxId.toLong(), title = temping),
+                    linked = Linked(id = maxId.toLong(),title = linked)
                 )
             )
 
@@ -425,11 +466,6 @@ class MangaService: MangaRep {
         }
     }
 
-//    override fun tester(): List<String>{
-//        val driver = setWebDriver("https://mangahub.ru/title/tokyo_ghoul_2011/like")
-//
-//
-//    }
 
     override fun readMangaByLink(url: String): List<String> {
         val driver = setWebDriver(url)

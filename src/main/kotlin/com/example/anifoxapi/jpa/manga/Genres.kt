@@ -6,7 +6,6 @@ import javax.persistence.*
 @Table(name="genres")
 data class Genres (
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long? = 0,
 
     @Column(columnDefinition = "TEXT")
