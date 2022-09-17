@@ -1,5 +1,6 @@
 package com.example.anifoxapi.controller.anime
 
+import com.example.anifoxapi.jpa.manga.Genres
 import com.example.anifoxapi.jpa.manga.MangaResponseDto
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.responses.ServiceResponse
@@ -26,15 +27,31 @@ class MangaController {
     @Operation(summary = "Search manga")
     fun search(
         @RequestParam query: String,
-    ): ServiceResponse<MangaLightResponse> {
+    ): ServiceResponse<MangaLightResponse?> {
         return try {
             val data = service.search(query = query)
-
-            return ServiceResponse(data = data, status = HttpStatus.OK)
+            return if (data.isEmpty()){
+                ServiceResponse(data = null, status = HttpStatus.BAD_REQUEST, message = "Not Found")
+            } else ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
         }
     }
+
+    @GetMapping("genres")
+    @Operation(summary = "get manga genres")
+    fun genres(): ServiceResponse<String?> {
+        return try {
+            val data = service.genres()
+            return if (data.isEmpty()){
+                ServiceResponse(data = null, status = HttpStatus.BAD_REQUEST, message = "Not Found")
+            } else ServiceResponse(data = data, status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        }
+    }
+
+
 
     @GetMapping("{id}")
     @Operation(summary = "Get detail of manga")
@@ -56,11 +73,11 @@ class MangaController {
     @GetMapping("")
     @Operation(summary = "Get manga")
     fun getManga(
-            pageNum: Int,
-            pageSize: Int,
-            status: String?,
-            order: String?,
-            genre: String?
+        @RequestParam(defaultValue = "1") pageNum: @Min(1) Int,
+        @RequestParam(defaultValue = "12") pageSize: @Min(1) @Max(500) Int,
+        status: String?,
+        order: String?,
+        genre: String?
     ): ServiceResponse<MangaLightResponse> {
         return try {
             val data = service.getManga(

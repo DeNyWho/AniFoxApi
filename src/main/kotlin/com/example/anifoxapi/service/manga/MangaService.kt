@@ -2,6 +2,7 @@ package com.example.anifoxapi.service.manga
 
 import com.example.anifoxapi.jpa.manga.*
 import com.example.anifoxapi.model.manga.MangaLightResponse
+import com.example.anifoxapi.repository.manga.GenreRepository
 import com.example.anifoxapi.repository.manga.MangaRep
 import com.example.anifoxapi.repository.manga.MangaRepository
 import com.example.anifoxapi.util.OS
@@ -50,7 +51,10 @@ class MangaService: MangaRep {
     @Autowired
     lateinit var mangaRepository: MangaRepository
 
-    override fun search(query: String): List<MangaLightResponse> {
+    @Autowired
+    lateinit var genreRepository: GenreRepository
+
+    override fun search(query: String): List<MangaLightResponse?> {
 
         val light = mutableListOf<MangaLightResponse>()
         val manga = mangaRepository.findByTitleSearch(query)
@@ -70,6 +74,19 @@ class MangaService: MangaRep {
         }
 
         return light.toList()
+    }
+
+    override fun genres(): List<String> {
+        val v = genreRepository.wtf()
+        val temp = mutableListOf<String>()
+        v.forEach {
+            it.title.forEach {v ->
+                if (!v.contains("#")) {
+                    temp.add(v)
+                }
+            }
+        }
+        return temp.distinct()
     }
 
     override fun similarManga(id: Int): List<MangaLightResponse> {
@@ -228,9 +245,19 @@ class MangaService: MangaRep {
                     //genres
                     document.a {
                         withClass = "tag.fw-medium"
+                        val b = findAll { return@findAll eachText }
+                        val c = mutableListOf<String>()
+
+                        b.forEach {
+                            if(it.contains("/")) {
+                                c.add(it.split("/")[0].dropLast(1))
+                            } else {
+                                c.add(it)
+                            }
+                        }
                         genres = Genres(
                             id = maxId.toLong(),
-                            title = findAll { return@findAll eachText }.map { it.replace("#","") }
+                            title = c
                         )
                     }
 

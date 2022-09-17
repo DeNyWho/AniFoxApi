@@ -1,7 +1,9 @@
 package com.example.anifoxapi
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.runApplication
+
 
 @SpringBootApplication
 class AniFoxApiApplication
