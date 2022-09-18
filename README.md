@@ -1,8 +1,11 @@
 # AniFoxApi
 MVC Spring Anime Api
+
 Anime | Manga parser
-! project for educational only !
-To contact me, use denis.akhunov00@gmail.com
+
+```! project for educational only !```
+
+To contact me, use `denis.akhunov00@gmail.com`
 
 
 
