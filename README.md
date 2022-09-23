@@ -1,6 +1,13 @@
 # AniFoxApi
 MVC Spring Anime Api
 
+Anime | Manga parser
+
+```! project for educational only !```
+
+To contact me, use `denis.akhunov123@gmail.com`
+
+
 
 ## Installation
 
