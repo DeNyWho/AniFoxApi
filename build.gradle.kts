@@ -43,7 +43,6 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-
     implementation("it.skrape:skrapeit:1.2.2")
     // Selenium WebDrive
     implementation("org.seleniumhq.selenium:selenium-java:4.2.1")

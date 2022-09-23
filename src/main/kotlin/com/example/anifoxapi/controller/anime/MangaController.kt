@@ -138,9 +138,6 @@ class MangaController {
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
         }
-        catch (e: Exception) {
-            ServiceResponse(status = HttpStatus.INTERNAL_SERVER_ERROR, message = e.message!!)
-        }
     }
 
 }

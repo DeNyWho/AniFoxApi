@@ -75,7 +75,7 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
     fun findByTitleSearch(@Param("title") title: String): List<Manga>
 
     @Query(value = "SELECT u FROM Manga u where u.title = :title")
-    fun findByTitle(@Param("title") title: String): Manga
+    fun findByTitle(@Param("title") title: String): List<Manga>
 
 }
 
