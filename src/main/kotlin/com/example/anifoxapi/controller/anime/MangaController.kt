@@ -1,6 +1,6 @@
 package com.example.anifoxapi.controller.anime
 
-import com.example.anifoxapi.jpa.manga.Genres
+import com.example.anifoxapi.jpa.manga.Chapters
 import com.example.anifoxapi.jpa.manga.MangaResponseDto
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import com.example.anifoxapi.model.responses.ServiceResponse
@@ -119,6 +119,21 @@ class MangaController {
             val data = service.linkedManga(id = id)
 
             return ServiceResponse(data = data, status = HttpStatus.OK)
+        } catch (e: ChangeSetPersister.NotFoundException) {
+            ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
+        }
+    }
+
+    @GetMapping("chapters/{id}")
+    @Operation(summary = "Get chapters of manga")
+    fun chaptersManga(
+            @PathVariable id: Int
+    ): ServiceResponse<Chapters> {
+        return try {
+
+            val data = service.chaptersManga(id = id)
+
+            return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
         }

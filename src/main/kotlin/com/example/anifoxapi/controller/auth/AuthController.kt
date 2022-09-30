@@ -73,8 +73,6 @@ class AuthController {
 
         val userCandidate: Optional<User> = userRepository.findByEmail(loginRequest.email!!)
 
-        println("USER = ${userCandidate.get().token}")
-
         if (userCandidate.isPresent) {
             val user: User = userCandidate.get()
             val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(user.username, loginRequest.password)
@@ -82,7 +80,7 @@ class AuthController {
             if(!usernamePasswordAuthenticationToken.isAuthenticated) {
 
                 try {
-                    val auth = authenticationManager.authenticate(usernamePasswordAuthenticationToken)
+                    authenticationManager.authenticate(usernamePasswordAuthenticationToken)
                 } catch (e: Exception){
                     if(e.message.toString() == "Bad credentials"){
                         return ServiceResponse(
@@ -131,7 +129,7 @@ class AuthController {
                 else {
                     return ServiceResponse(
                         data = null,
-                        status = HttpStatus.OK,
+                        status = HttpStatus.BAD_REQUEST,
                         message = "Smth going wrong"
                     )
                 }
@@ -146,7 +144,7 @@ class AuthController {
             return ServiceResponse(
                 data = null,
                 status = HttpStatus.BAD_REQUEST,
-                message = "User not found!"
+                message = "Wrong login or password"
             )
         }
     }

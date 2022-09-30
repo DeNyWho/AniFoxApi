@@ -28,6 +28,7 @@ interface MangaRep {
     fun similarManga(id: Int): List<MangaLightResponse>
     fun linkedManga(id: Int): List<MangaLightResponse>
     fun genres(): List<String>
+    fun chaptersManga(id: Int): Chapters
 }
 
 @Repository
@@ -65,8 +66,6 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
 
     @Query(value = "Select u From Linked u where u.id = :mangaID")
     fun findByLinkedManga(@Param("mangaID") mangaID: Long): Linked
-
-    override fun findById(id: Int): Optional<Manga>
 
     @Query(nativeQuery = true, value = "SELECT * FROM Manga order by random()")
     fun findByRandom(pageable: Pageable): Page<Manga>
