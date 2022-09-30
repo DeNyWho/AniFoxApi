@@ -540,50 +540,54 @@ class MangaService: MangaRep {
             val manga = mangaRepository.findById(id)
             val titles = manga.get().chapters.title
             val urls = manga.get().chapters.url
-            val temp = mutableListOf<String>()
-            urls.forEach {
-                temp.addAll(it.split("/vol").filter { it.contains("page") })
-            }
-            val tempUrl = urls[0].split("/vol").filter { !it.contains("page") }[0]
-            val x = mutableListOf<String>()
-            temp.forEach { x.addAll(it.split("?page=1").filter { it.isNotEmpty() }) }
-            val z = mutableListOf<String>()
-            x.forEach {
-                z.addAll(it.split("/").filter { it.isNotEmpty() })
-            }
-            val v = mutableListOf<ChapterSupport>()
-            var k = 1
-            var c = 0
-            for(i in 0 until z.size){
-                try {
-                    v.add(
-                        ChapterSupport(
-                            vol = z[c].toInt(),
-                            number = z[k].toInt()
-                        )
-                    )
-                    c = c + 2
-                    k = k + 2
-                } catch (e: Exception) {}
-            }
-            val finalTemp = v.sortedWith(compareBy<ChapterSupport> { it.vol }.thenBy { it.number }.reversed())
-            val final = mutableListOf<String>()
-
-            for( i in finalTemp.indices){
-                final.add("$tempUrl/vol${finalTemp[i].vol}/${finalTemp[i].number}?page=1")
-            }
 
             val date = manga.get().chapters.date
             val chapters = Chapters(
                 id = id.toLong(),
                 title = titles,
-                url = final,
+                url = normalizeUrls(urls),
                 date = date
             )
             return toDto(manga.get(), chapters)
         } catch (e: Exception) {
             MangaResponseDto()
         }
+    }
+
+    fun normalizeUrls(urls: List<String>): MutableList<String> {
+        val temp = mutableListOf<String>()
+        urls.forEach {
+            temp.addAll(it.split("/vol").filter { it.contains("page") })
+        }
+        val tempUrl = urls[0].split("/vol").filter { !it.contains("page") }[0]
+        val x = mutableListOf<String>()
+        temp.forEach { x.addAll(it.split("?page=1").filter { it.isNotEmpty() }) }
+        val z = mutableListOf<String>()
+        x.forEach {
+            z.addAll(it.split("/").filter { it.isNotEmpty() })
+        }
+        val v = mutableListOf<ChapterSupport>()
+        var k = 1
+        var c = 0
+        for(i in 0 until z.size){
+            try {
+                v.add(
+                    ChapterSupport(
+                        vol = z[c].toInt(),
+                        number = z[k].toInt()
+                    )
+                )
+                c = c + 2
+                k = k + 2
+            } catch (e: Exception) {}
+        }
+        val finalTemp = v.sortedWith(compareBy<ChapterSupport> { it.vol }.thenBy { it.number }.reversed())
+        val final = mutableListOf<String>()
+
+        for( i in finalTemp.indices){
+            final.add("$tempUrl/vol${finalTemp[i].vol}/${finalTemp[i].number}?page=1")
+        }
+        return final
     }
 
 
