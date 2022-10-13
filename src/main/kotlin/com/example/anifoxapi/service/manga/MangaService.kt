@@ -6,8 +6,6 @@ import com.example.anifoxapi.model.support.ChapterSupport
 import com.example.anifoxapi.repository.manga.GenreRepository
 import com.example.anifoxapi.repository.manga.MangaRep
 import com.example.anifoxapi.repository.manga.MangaRepository
-import com.example.anifoxapi.util.OS
-import com.example.anifoxapi.util.getOS
 import it.skrape.core.document
 import it.skrape.fetcher.HttpFetcher
 import it.skrape.fetcher.response
@@ -16,11 +14,12 @@ import it.skrape.selects.DocElement
 import it.skrape.selects.eachAttribute
 import it.skrape.selects.eachHref
 import it.skrape.selects.eachText
-import it.skrape.selects.html5.*
-import org.openqa.selenium.*
-import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
+import it.skrape.selects.html5.a
+import it.skrape.selects.html5.div
+import it.skrape.selects.html5.li
+import it.skrape.selects.html5.span
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -30,6 +29,12 @@ import org.springframework.stereotype.Service
 
 @Service
 class MangaService: MangaRep {
+
+    @Value("\${afa.app.manga_full}")
+    lateinit var mangaFull: String
+
+    @Value("\${afa.app.manga_small}")
+    lateinit var mangaSmall: String
 
     fun toDto(manga: Manga, chapters: Chapters): MangaResponseDto {
         return MangaResponseDto(
@@ -135,7 +140,6 @@ class MangaService: MangaRep {
         val light = mutableListOf<MangaLightResponse>()
 
         val list = mangaRepository.findByLinkedManga(id.toLong())
-        println("FDSFSD = $list")
         val mangas = mutableListOf<Manga>()
 
         for(i in 0 until list.title.size){
@@ -154,7 +158,6 @@ class MangaService: MangaRep {
                 println("Mangas = ${e.message}")
             }
         }
-        println("Mangas = ${mangas.size}")
 
         if(mangas.size > 0){
             mangas.forEach {
@@ -185,7 +188,7 @@ class MangaService: MangaRep {
 
         skrape(HttpFetcher) {
             request {
-                url = "https://mangahub.ru/explore/type-is-nor-comix/genres-is-nor-erotica/sort-is-date?page=1"
+                url = mangaFull + 1
             }
             response {
                 document.span {
@@ -204,12 +207,11 @@ class MangaService: MangaRep {
             println(i)
             pagesBoolean = false
             while (!pagesBoolean) {
-                println("This try Pages")
                 try {
                     skrape(HttpFetcher) {
                         request {
                             url =
-                                "https://mangahub.ru/explore/type-is-nor-comix/genres-is-nor-erotica/sort-is-date?page=$i"
+                                "$mangaFull$i"
                             timeout = 400_000
                         }
                         response {
@@ -221,12 +223,12 @@ class MangaService: MangaRep {
                             //urls
                             document.a {
                                 withClass = "d-block.rounded.fast-view-layer"
-                                urls.addAll(findAll { return@findAll eachHref }.map { "https://mangahub.ru$it" })
+                                urls.addAll(findAll { return@findAll eachHref }.map { "$mangaSmall$it" })
                             }
                             //image
                             document.div {
                                 withClass = "comic-grid-image"
-                                images.addAll(findAll { return@findAll eachAttribute("data-background-image") }.map { "https://mangahub.ru$it" })
+                                images.addAll(findAll { return@findAll eachAttribute("data-background-image") }.map { "$mangaSmall$it" })
                             }
                         }
                     }
@@ -244,7 +246,6 @@ class MangaService: MangaRep {
                 try {
                     var description = ""
                     var genres = Genres()
-                    var chapters = Chapters()
                     var urlsSlides = listOf<String>()
                     var urlsTitles = listOf<String>()
                     var urlsDates = listOf<String>()
@@ -360,7 +361,7 @@ class MangaService: MangaRep {
                                         withClass =
                                             "d-inline-flex.ms-2.fs-2.fw-medium.text-reset.min-w-0.flex-lg-grow-1"
                                         urlsSlides =
-                                            findAll { return@findAll eachHref }.map { "https://mangahub.ru$it?page=1" }
+                                            findAll { return@findAll eachHref }.map { "$mangaSmall$it?page=1" }
                                         urlsTitles = findAll { return@findAll eachText }
                                     } catch (e: Exception) {
                                         withClass = "text-muted.text-center.fw-medium.py-4"
@@ -588,47 +589,6 @@ class MangaService: MangaRep {
             final.add("$tempUrl/vol${finalTemp[i].vol}/${finalTemp[i].number}?page=1")
         }
         return final
-    }
-
-
-    override fun readMangaByLink(url: String): List<String> {
-        val driver = setWebDriver(url)
-        val pagesReader = driver.findElement(By.xpath("//*[@class=\"button reader-pages__label reader-footer__btn\"]")).text
-        val pagesCount = pagesReader.replace("Страница 1 / ", "").toInt()
-
-        val pages = mutableListOf<String>()
-
-        for (page in 1 until pagesCount ) {
-            driver.get("$url?page=$page")
-            val imgs = driver.findElement(By.xpath("//*[@class=\"reader-view__wrap\"]"))
-            pages.add(imgs.findElement(By.tagName("img")).getAttribute("src"))
-        }
-
-        driver.quit()
-        return pages.toList()
-    }
-
-    fun setWebDriver(url: String): WebDriver {
-        val pathDriver: String = when (getOS()) {
-            // Loaded from here https://chromedriver.storage.googleapis.com/index.html?path=101.0.4951.41/
-            OS.WINDOWS -> "_win32_101.exe"
-            OS.LINUX-> "_linux64_101"
-            OS.MAC-> "_mac64_101"
-            else -> throw Exception("Unknown operating system!")
-        }
-        System.setProperty("webdriver.chrome.driver", "driver/chromedriver$pathDriver");
-        val options = ChromeOptions()
-//        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36")
-        options.addArguments("--headless")
-            val driver = ChromeDriver(options)
-        try {
-            driver.get(url);
-        } catch (e: Exception) {
-            println(e.message)
-
-            throw Exception(e.localizedMessage)
-        }
-        return driver
     }
 
 

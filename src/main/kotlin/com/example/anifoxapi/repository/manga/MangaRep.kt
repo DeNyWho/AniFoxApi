@@ -19,8 +19,6 @@ interface MangaRep {
 
     fun search(query: String): List<MangaLightResponse?>
 
-    fun readMangaByLink(url: String): List<String>
-
     fun addDataToDB(): Manga
     fun getMangaFromDB(id: Int): MangaResponseDto
     fun getManga(countCard: Int, status: String?, page: Int, order: String?, genre: String?): List<MangaLightResponse>

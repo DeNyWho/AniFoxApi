@@ -51,8 +51,6 @@ class MangaController {
         }
     }
 
-
-
     @GetMapping("{id}")
     @Operation(summary = "Get detail of manga")
     fun getMangaById(
@@ -60,7 +58,6 @@ class MangaController {
     ): ServiceResponse<MangaResponseDto> {
         return try {
             val data = service.getMangaFromDB(id)
-
             return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
@@ -87,7 +84,6 @@ class MangaController {
                 order = order,
                 genre = genre
             )
-
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
@@ -100,9 +96,7 @@ class MangaController {
             @PathVariable id: Int
     ): ServiceResponse<MangaLightResponse> {
         return try {
-
             val data = service.similarManga(id = id)
-
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
@@ -115,9 +109,7 @@ class MangaController {
             @PathVariable id: Int
     ): ServiceResponse<MangaLightResponse> {
         return try {
-
             val data = service.linkedManga(id = id)
-
             return ServiceResponse(data = data, status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
@@ -130,9 +122,7 @@ class MangaController {
             @PathVariable id: Int
     ): ServiceResponse<Chapters> {
         return try {
-
             val data = service.chaptersManga(id = id)
-
             return ServiceResponse(data = listOf(data), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)
