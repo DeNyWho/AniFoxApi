@@ -4,7 +4,7 @@ import javax.persistence.*
 
 
 @Entity
-@Table(name="likeManga")
+@Table(name="likeManga", schema = "manga")
 data class LikeManga(
     @Column(name = "manga_id")
     @Id
@@ -12,5 +12,6 @@ data class LikeManga(
 
     @Column(columnDefinition = "TEXT")
     @ElementCollection
+    @JoinTable(schema = "manga", name = "like_title")
     val title: List<String> = ArrayList<String>(),
 )

@@ -3,7 +3,7 @@ package com.example.anifoxapi.jpa.manga
 import javax.persistence.*
 
 @Entity
-@Table(name="types")
+@Table(name="types", schema = "manga")
 data class Types(
     @Id
     val id: Long? = 0,

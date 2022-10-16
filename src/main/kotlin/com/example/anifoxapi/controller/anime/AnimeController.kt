@@ -28,7 +28,7 @@ class AnimeController {
 
             val finish = System.currentTimeMillis()
             val elapsed = finish - start
-            println("Время выполнения $elapsed")
+            println("Time execution $elapsed")
             return ServiceResponse(data = listOf(elapsed), status = HttpStatus.OK)
         } catch (e: ChangeSetPersister.NotFoundException) {
             ServiceResponse(status = HttpStatus.NOT_FOUND, message = e.message!!)

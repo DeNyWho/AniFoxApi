@@ -5,7 +5,7 @@ import org.hibernate.Hibernate
 import javax.persistence.*
 
 @Entity
-@Table(name="manga")
+@Table(name="manga", schema = "manga")
 data class Manga(
     @Id
     val id: Int = 0,

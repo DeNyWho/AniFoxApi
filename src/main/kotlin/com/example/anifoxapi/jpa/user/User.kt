@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "public_users")
 data class User (
 
         @Id
@@ -34,7 +34,8 @@ data class User (
         @JoinTable(
                 name = "users_roles",
                 joinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")],
-                inverseJoinColumns = [JoinColumn(name = "role_id", referencedColumnName = "id")]
+                inverseJoinColumns = [JoinColumn(name = "role_id", referencedColumnName = "id")],
+                schema = "public_users"
         )
 
         var roles: Collection<Role>? = null,
@@ -54,7 +55,8 @@ data class User (
         @JoinTable(
                 name = "Favourite_User_Manga",
                 joinColumns =  [JoinColumn(name = "favourite_id")],
-                inverseJoinColumns = [JoinColumn(name = "like_id")]
+                inverseJoinColumns = [JoinColumn(name = "like_id")],
+                schema = "manga"
         )
         var favouriteManga: MutableSet<Manga> = mutableSetOf(),
         @ManyToMany(
@@ -65,7 +67,8 @@ data class User (
         @JoinTable(
                 name = "Watch_User_Manga",
                 joinColumns =  [JoinColumn(name = "favourite_id")],
-                inverseJoinColumns = [JoinColumn(name = "watching_id")]
+                inverseJoinColumns = [JoinColumn(name = "watching_id")],
+                schema = "manga"
         )
         var watchingManga: MutableSet<Manga> = mutableSetOf(),
         @ManyToMany(
@@ -76,7 +79,8 @@ data class User (
         @JoinTable(
                 name = "Completed_User_Manga",
                 joinColumns =  [JoinColumn(name = "favourite_id")],
-                inverseJoinColumns = [JoinColumn(name = "completed_id")]
+                inverseJoinColumns = [JoinColumn(name = "completed_id")],
+                schema = "manga"
         )
         var completedManga: MutableSet<Manga> = mutableSetOf(),
         @ManyToMany(
@@ -87,7 +91,8 @@ data class User (
         @JoinTable(
                 name = "OnHold_User_Manga",
                 joinColumns =  [JoinColumn(name = "favourite_id")],
-                inverseJoinColumns = [JoinColumn(name = "hold_id")]
+                inverseJoinColumns = [JoinColumn(name = "hold_id")],
+                schema = "manga"
         )
         var onHoldManga: MutableSet<Manga> = mutableSetOf(),
 ){

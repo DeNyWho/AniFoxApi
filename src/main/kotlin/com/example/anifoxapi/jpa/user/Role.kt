@@ -6,7 +6,7 @@ import javax.persistence.*
 
 @NoArgsConstructor
 @Entity
-@Table(name = "roles")
+@Table(name = "roles", schema = "public_users")
 data class Role (
 
     @Id

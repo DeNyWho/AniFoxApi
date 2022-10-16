@@ -30,7 +30,8 @@ data class UserResponseDto(
     @JoinTable(
         name = "users_roles",
         joinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")],
-        inverseJoinColumns = [JoinColumn(name = "role_id", referencedColumnName = "id")]
+        inverseJoinColumns = [JoinColumn(name = "role_id", referencedColumnName = "id")],
+        schema = "public_users"
     )
 
     var roles: Collection<Role>? = null,
