@@ -5,13 +5,10 @@ import com.example.anifoxapi.jpa.user.User
 import com.example.anifoxapi.model.manga.MangaLightResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.util.*
 
 
 @Repository
@@ -50,9 +47,6 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
     @Query(value = "Select u From Manga u where :title member of u.genres.title")
     fun findByGenres(pageable: Pageable, @Param("title") genre: String): Page<Manga>
 
-//    @Query("select g.genres.title from Manga g")
-//    fun findUniqueGenres(): List<String>
-
     @Query(value = "Select u From Manga u where u.types.status = :status")
     fun findByStatus(pageable: Pageable, @Param("status") status: String): Page<Manga>
 
@@ -65,7 +59,7 @@ interface MangaRepository: PagingAndSortingRepository<Manga, Int> {
     @Query(value = "Select u From Linked u where u.id = :mangaID")
     fun findByLinkedManga(@Param("mangaID") mangaID: Long): Linked
 
-    @Query(nativeQuery = true, value = "SELECT * FROM Manga order by random()")
+    @Query(nativeQuery = true, value = "SELECT * FROM manga.manga order by random()")
     fun findByRandom(pageable: Pageable): Page<Manga>
 
     @Query("select u from Manga u where upper(u.title) like concat('%', upper(?1), '%')")

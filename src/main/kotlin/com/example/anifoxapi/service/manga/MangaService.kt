@@ -189,6 +189,7 @@ class MangaService: MangaRep {
         skrape(HttpFetcher) {
             request {
                 url = mangaFull + 1
+                timeout = 400_000
             }
             response {
                 document.span {
